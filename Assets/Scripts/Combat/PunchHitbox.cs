@@ -16,23 +16,37 @@ namespace HeroVR.Combat
 
         private Rigidbody rb;
         private Damageable owner;
+        private IHitVelocityProvider velocityProvider;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             owner = GetComponentInParent<Damageable>();
+
+            MonoBehaviour[] behaviours = GetComponents<MonoBehaviour>();
+            for (int index = 0; index < behaviours.Length; index++)
+            {
+                if (behaviours[index] is IHitVelocityProvider provider)
+                {
+                    velocityProvider = provider;
+                    break;
+                }
+            }
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            float speed = rb.linearVelocity.magnitude;
+            Vector3 velocity = velocityProvider != null
+                ? velocityProvider.Velocity
+                : rb.linearVelocity;
+            float speed = velocity.magnitude;
             if (speed < minimumHitSpeed) return;
 
             var target = collision.collider.GetComponentInParent<Damageable>();
             if (target == null || target == owner) return;
 
             float damage = Mathf.Min(speed * damagePerMeterPerSecond, maxDamage);
-            Vector3 direction = rb.linearVelocity.normalized;
+            Vector3 direction = velocity.normalized;
             float impulse = Mathf.Min(speed * knockbackMultiplier, maxKnockbackImpulse);
             Vector3 hitPoint = collision.contactCount > 0
                 ? collision.GetContact(0).point
@@ -49,6 +63,20 @@ namespace HeroVR.Combat
             {
                 collision.rigidbody.AddForce(direction * impulse, ForceMode.Impulse);
             }
+        }
+
+        public void Configure(
+            float minimumSpeed,
+            float damagePerSpeed,
+            float maximumDamage,
+            float impulseMultiplier,
+            float maximumImpulse)
+        {
+            minimumHitSpeed = Mathf.Max(0f, minimumSpeed);
+            damagePerMeterPerSecond = Mathf.Max(0f, damagePerSpeed);
+            maxDamage = Mathf.Max(0f, maximumDamage);
+            knockbackMultiplier = Mathf.Max(0f, impulseMultiplier);
+            maxKnockbackImpulse = Mathf.Max(0f, maximumImpulse);
         }
     }
 }

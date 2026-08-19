@@ -2,12 +2,17 @@ using HeroVR.Abilities;
 using HeroVR.Arena;
 using HeroVR.Combat;
 using HeroVR.Gameplay;
+using HeroVR.Heroes;
 using HeroVR.Movement;
 using HeroVR.Prototype;
+using HeroVR.XR;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.SceneManagement;
+using Unity.XR.CoreUtils;
 
 namespace HeroVR.Editor
 {
@@ -15,14 +20,22 @@ namespace HeroVR.Editor
     {
         private const string ProjectilePrefabPath =
             "Assets/Prefabs/Abilities/EnergyProjectile.prefab";
+        private const string HeroDefinitionPath =
+            "Assets/Heroes/KineticVanguard/KineticVanguard.asset";
         private const string PlayerPrefabPath =
             "Assets/Prefabs/Characters/DesktopPlayer.prefab";
+        private const string XRPlayerPrefabPath =
+            "Assets/Prefabs/Characters/XRPlayer.prefab";
         private const string EnemyPrefabPath =
             "Assets/Prefabs/Characters/TrainingEnemy.prefab";
         private const string MatchPrefabPath =
             "Assets/Prefabs/Gameplay/GameplayMatchBootstrap.prefab";
+        private const string XRMatchPrefabPath =
+            "Assets/Prefabs/Gameplay/XRGameplayMatchBootstrap.prefab";
         private const string SandboxScenePath =
             "Assets/Scenes/Gameplay/GameplaySandbox.unity";
+        private const string XRSandboxScenePath =
+            "Assets/Scenes/Gameplay/XRGameplaySandbox.unity";
 
         [MenuItem("HeroVR/Build Gameplay Foundation Assets")]
         public static void Build()
@@ -54,18 +67,37 @@ namespace HeroVR.Editor
 
             try
             {
+                HeroDefinition heroDefinition = LoadOrCreateHeroDefinition();
                 Material projectileMaterial = LoadOrCreateMaterial(
                     "Assets/Materials/Gameplay/EnergyProjectile.mat",
-                    new Color(.15f, .75f, 1f));
+                    heroDefinition.SignatureColor);
                 Material enemyMaterial = LoadOrCreateMaterial(
                     "Assets/Materials/Gameplay/TrainingEnemy.mat",
                     new Color(.85f, .16f, .18f));
+                Material handMaterial = LoadOrCreateMaterial(
+                    "Assets/Materials/Gameplay/XRHand.mat",
+                    heroDefinition.SignatureColor);
 
                 EnergyProjectile projectilePrefab =
                     BuildProjectilePrefab(projectileMaterial);
-                GameObject playerPrefab = BuildPlayerPrefab(projectilePrefab);
+                GameObject playerPrefab = BuildPlayerPrefab(
+                    projectilePrefab,
+                    heroDefinition);
+                GameObject xrPlayerPrefab = BuildXRPlayerPrefab(
+                    projectilePrefab,
+                    handMaterial,
+                    heroDefinition);
                 GameObject enemyPrefab = BuildEnemyPrefab(enemyMaterial);
-                BuildMatchPrefab(playerPrefab, enemyPrefab);
+                BuildMatchPrefab(
+                    "GameplayMatchBootstrap",
+                    MatchPrefabPath,
+                    playerPrefab,
+                    enemyPrefab);
+                BuildMatchPrefab(
+                    "XRGameplayMatchBootstrap",
+                    XRMatchPrefabPath,
+                    xrPlayerPrefab,
+                    enemyPrefab);
             }
             finally
             {
@@ -78,9 +110,20 @@ namespace HeroVR.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            BuildSandboxScene(useCleanUntitledScene ? buildScene : default);
+
+            Scene reusableScene = useCleanUntitledScene ? buildScene : default;
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SandboxScenePath) == null)
+            {
+                BuildSandboxScene(reusableScene, MatchPrefabPath, SandboxScenePath);
+                reusableScene = default;
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(XRSandboxScenePath) == null)
+                BuildSandboxScene(reusableScene, XRMatchPrefabPath, XRSandboxScenePath);
+
             AssetDatabase.SaveAssets();
-            Debug.Log("HeroVR gameplay foundation prefabs and sandbox scene built successfully.");
+            Debug.Log(
+                "HeroVR desktop and XR gameplay foundation assets built successfully.");
         }
 
         private static EnergyProjectile BuildProjectilePrefab(Material material)
@@ -100,7 +143,9 @@ namespace HeroVR.Editor
             return AssetDatabase.LoadAssetAtPath<EnergyProjectile>(ProjectilePrefabPath);
         }
 
-        private static GameObject BuildPlayerPrefab(EnergyProjectile projectilePrefab)
+        private static GameObject BuildPlayerPrefab(
+            EnergyProjectile projectilePrefab,
+            HeroDefinition heroDefinition)
         {
             GameObject root = new GameObject("DesktopPlayer");
 
@@ -112,6 +157,7 @@ namespace HeroVR.Editor
 
             root.AddComponent<Damageable>();
             root.AddComponent<RespawnOnDeath>();
+            root.AddComponent<CharacterKnockbackReceiver>();
             DesktopCharacterMotor motor = root.AddComponent<DesktopCharacterMotor>();
 
             MeleePunchAbility punch = root.AddComponent<MeleePunchAbility>();
@@ -119,6 +165,8 @@ namespace HeroVR.Editor
             DashAbility dash = root.AddComponent<DashAbility>();
             RadialSmashAbility smash = root.AddComponent<RadialSmashAbility>();
             HeroAbilityLoadout loadout = root.AddComponent<HeroAbilityLoadout>();
+            root.AddComponent<HeroUltimateCharge>();
+            HeroProfile heroProfile = root.AddComponent<HeroProfile>();
 
             GameObject cameraObject = new GameObject("HeroCamera");
             cameraObject.transform.SetParent(root.transform, false);
@@ -131,16 +179,16 @@ namespace HeroVR.Editor
             spawnObject.transform.SetParent(cameraObject.transform, false);
             spawnObject.transform.localPosition = Vector3.forward * 1.1f;
 
-            punch.SetCooldown(.35f);
             punch.SetAttackOrigin(cameraObject.transform);
-            projectile.SetCooldown(.55f);
-            projectile.Configure(projectilePrefab, spawnObject.transform, 24f);
-            dash.SetCooldown(1.5f);
+            projectile.Configure(
+                projectilePrefab,
+                spawnObject.transform,
+                heroDefinition.Projectile.speed);
             dash.SetDirectionSource(root.transform);
-            smash.SetCooldown(4f);
             smash.SetCenterPoint(root.transform);
             loadout.Configure(punch, projectile, dash, smash);
             motor.SetViewTransform(cameraObject.transform);
+            heroProfile.Configure(heroDefinition);
 
             DesktopHeroController controller =
                 root.AddComponent<DesktopHeroController>();
@@ -173,20 +221,265 @@ namespace HeroVR.Editor
             return AssetDatabase.LoadAssetAtPath<GameObject>(EnemyPrefabPath);
         }
 
+        private static GameObject BuildXRPlayerPrefab(
+            EnergyProjectile projectilePrefab,
+            Material handMaterial,
+            HeroDefinition heroDefinition)
+        {
+            GameObject root = new GameObject("XRPlayer");
+
+            CharacterController characterController =
+                root.AddComponent<CharacterController>();
+            characterController.height = 1.7f;
+            characterController.radius = .3f;
+            characterController.center = new Vector3(0f, .85f, 0f);
+
+            root.AddComponent<Damageable>();
+            root.AddComponent<RespawnOnDeath>();
+            root.AddComponent<CharacterKnockbackReceiver>();
+
+            MeleePunchAbility punch = root.AddComponent<MeleePunchAbility>();
+            ProjectileCaster projectile = root.AddComponent<ProjectileCaster>();
+            DashAbility dash = root.AddComponent<DashAbility>();
+            RadialSmashAbility smash = root.AddComponent<RadialSmashAbility>();
+            HeroAbilityLoadout loadout = root.AddComponent<HeroAbilityLoadout>();
+            root.AddComponent<HeroUltimateCharge>();
+            HeroProfile heroProfile = root.AddComponent<HeroProfile>();
+
+            XROrigin xrOrigin = root.AddComponent<XROrigin>();
+            XRCharacterMotor motor = root.AddComponent<XRCharacterMotor>();
+            XRHeroInputAdapter input = root.AddComponent<XRHeroInputAdapter>();
+
+            GameObject cameraOffset = new GameObject("CameraOffset");
+            cameraOffset.transform.SetParent(root.transform, false);
+
+            GameObject cameraObject = new GameObject("Main Camera");
+            cameraObject.transform.SetParent(cameraOffset.transform, false);
+            cameraObject.transform.localPosition = Vector3.up * 1.7f;
+            cameraObject.tag = "MainCamera";
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.nearClipPlane = .05f;
+            cameraObject.AddComponent<AudioListener>();
+            ConfigureTrackedPose(
+                cameraObject.AddComponent<TrackedPoseDriver>(),
+                "Head",
+                "<XRHMD>/centerEyePosition",
+                "<XRHMD>/centerEyeRotation",
+                "<XRHMD>/trackingState");
+
+            Transform leftController = CreateTrackedController(
+                cameraOffset.transform,
+                "LeftController",
+                "LeftHand",
+                new Vector3(-.2f, 1.3f, .25f));
+            Transform rightController = CreateTrackedController(
+                cameraOffset.transform,
+                "RightController",
+                "RightHand",
+                new Vector3(.2f, 1.3f, .25f));
+
+            GameObject spawnObject = new GameObject("ProjectileSpawn");
+            spawnObject.transform.SetParent(rightController, false);
+            spawnObject.transform.localPosition = Vector3.forward * .12f;
+
+            CreatePhysicsHand(
+                root.transform,
+                "LeftPhysicsHand",
+                leftController,
+                handMaterial);
+            CreatePhysicsHand(
+                root.transform,
+                "RightPhysicsHand",
+                rightController,
+                handMaterial);
+
+            xrOrigin.Origin = root;
+            xrOrigin.CameraFloorOffsetObject = cameraOffset;
+            xrOrigin.Camera = camera;
+            xrOrigin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
+            xrOrigin.CameraYOffset = 0f;
+
+            punch.SetAttackOrigin(rightController);
+            projectile.Configure(
+                projectilePrefab,
+                spawnObject.transform,
+                heroDefinition.Projectile.speed);
+            dash.SetDirectionSource(cameraObject.transform);
+            smash.SetCenterPoint(root.transform);
+            loadout.Configure(punch, projectile, dash, smash);
+            motor.Configure(cameraObject.transform);
+
+            input.Configure(
+                CreateInputAction(
+                    "Move",
+                    InputActionType.Value,
+                    "Vector2",
+                    "<XRController>{LeftHand}/{primary2DAxis}"),
+                CreateInputAction(
+                    "Turn",
+                    InputActionType.Value,
+                    "Vector2",
+                    "<XRController>{RightHand}/{primary2DAxis}"),
+                CreateInputAction(
+                    "Jump",
+                    InputActionType.Button,
+                    "Button",
+                    "<XRController>{LeftHand}/{primaryButton}"),
+                default,
+                CreateInputAction(
+                    "Energy Projectile",
+                    InputActionType.Button,
+                    "Button",
+                    "<XRController>{RightHand}/{triggerButton}"),
+                CreateInputAction(
+                    "Dash",
+                    InputActionType.Button,
+                    "Button",
+                    "<XRController>{LeftHand}/{primary2DAxisClick}"),
+                CreateInputAction(
+                    "Super Smash",
+                    InputActionType.Button,
+                    "Button",
+                    "<XRController>{RightHand}/{primaryButton}"));
+
+            CreateWristStatusDisplay(
+                root,
+                leftController,
+                cameraObject.transform,
+                heroDefinition.SignatureColor);
+            heroProfile.Configure(heroDefinition);
+
+            PrefabUtility.SaveAsPrefabAsset(root, XRPlayerPrefabPath);
+            Object.DestroyImmediate(root);
+            return AssetDatabase.LoadAssetAtPath<GameObject>(XRPlayerPrefabPath);
+        }
+
+        private static Transform CreateTrackedController(
+            Transform parent,
+            string objectName,
+            string handUsage,
+            Vector3 editorPosition)
+        {
+            GameObject controllerObject = new GameObject(objectName);
+            controllerObject.transform.SetParent(parent, false);
+            controllerObject.transform.localPosition = editorPosition;
+
+            ConfigureTrackedPose(
+                controllerObject.AddComponent<TrackedPoseDriver>(),
+                objectName,
+                $"<XRController>{{{handUsage}}}/devicePosition",
+                $"<XRController>{{{handUsage}}}/deviceRotation",
+                $"<XRController>{{{handUsage}}}/trackingState");
+            return controllerObject.transform;
+        }
+
+        private static void CreatePhysicsHand(
+            Transform parent,
+            string objectName,
+            Transform trackingTarget,
+            Material material)
+        {
+            GameObject hand = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            hand.name = objectName;
+            hand.transform.SetParent(parent, false);
+            hand.transform.SetPositionAndRotation(
+                trackingTarget.position,
+                trackingTarget.rotation);
+            hand.transform.localScale = Vector3.one * .18f;
+            hand.GetComponent<Renderer>().sharedMaterial = material;
+
+            Rigidbody body = hand.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+
+            TrackedHandPhysicsFollower follower =
+                hand.AddComponent<TrackedHandPhysicsFollower>();
+            follower.Configure(trackingTarget);
+            hand.AddComponent<PunchHitbox>();
+        }
+
+        private static void CreateWristStatusDisplay(
+            GameObject playerRoot,
+            Transform leftController,
+            Transform viewer,
+            Color color)
+        {
+            GameObject statusObject = new GameObject("WristStatus");
+            statusObject.transform.SetParent(leftController, false);
+            statusObject.transform.localPosition = new Vector3(0f, .11f, .08f);
+
+            TextMesh text = statusObject.AddComponent<TextMesh>();
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.fontSize = 40;
+            text.characterSize = .012f;
+            text.color = color;
+
+            HeroStatusDisplay display =
+                playerRoot.AddComponent<HeroStatusDisplay>();
+            display.Configure(text, viewer);
+        }
+
+        private static void ConfigureTrackedPose(
+            TrackedPoseDriver driver,
+            string actionPrefix,
+            string positionPath,
+            string rotationPath,
+            string trackingStatePath)
+        {
+            driver.positionInput = CreateInputAction(
+                $"{actionPrefix} Position",
+                InputActionType.PassThrough,
+                "Vector3",
+                positionPath);
+            driver.rotationInput = CreateInputAction(
+                $"{actionPrefix} Rotation",
+                InputActionType.PassThrough,
+                "Quaternion",
+                rotationPath);
+            driver.trackingStateInput = CreateInputAction(
+                $"{actionPrefix} Tracking State",
+                InputActionType.PassThrough,
+                "Integer",
+                trackingStatePath);
+            driver.ignoreTrackingState = false;
+        }
+
+        private static InputActionProperty CreateInputAction(
+            string actionName,
+            InputActionType actionType,
+            string expectedControlType,
+            string bindingPath)
+        {
+            InputAction action = new InputAction(
+                actionName,
+                actionType,
+                bindingPath,
+                expectedControlType: expectedControlType);
+            return new InputActionProperty(action);
+        }
+
         private static void BuildMatchPrefab(
+            string objectName,
+            string prefabPath,
             GameObject playerPrefab,
             GameObject enemyPrefab)
         {
-            GameObject root = new GameObject("GameplayMatchBootstrap");
+            GameObject root = new GameObject(objectName);
             GameplayMatchBootstrap bootstrap =
                 root.AddComponent<GameplayMatchBootstrap>();
             bootstrap.Configure(playerPrefab, enemyPrefab);
 
-            PrefabUtility.SaveAsPrefabAsset(root, MatchPrefabPath);
+            PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
             Object.DestroyImmediate(root);
         }
 
-        private static void BuildSandboxScene(Scene reusableUntitledScene)
+        private static void BuildSandboxScene(
+            Scene reusableUntitledScene,
+            string matchPrefabPath,
+            string scenePath)
         {
             Scene originalActiveScene = SceneManager.GetActiveScene();
             bool reuseScene = reusableUntitledScene.IsValid();
@@ -223,10 +516,10 @@ namespace HeroVR.Editor
             CreateLight();
 
             GameObject matchPrefab =
-                AssetDatabase.LoadAssetAtPath<GameObject>(MatchPrefabPath);
+                AssetDatabase.LoadAssetAtPath<GameObject>(matchPrefabPath);
             PrefabUtility.InstantiatePrefab(matchPrefab, sandboxScene);
 
-            EditorSceneManager.SaveScene(sandboxScene, SandboxScenePath);
+            EditorSceneManager.SaveScene(sandboxScene, scenePath);
             if (!reuseScene)
                 EditorSceneManager.CloseScene(sandboxScene, true);
 
@@ -310,6 +603,24 @@ namespace HeroVR.Editor
             return material;
         }
 
+        private static HeroDefinition LoadOrCreateHeroDefinition()
+        {
+            HeroDefinition definition =
+                AssetDatabase.LoadAssetAtPath<HeroDefinition>(HeroDefinitionPath);
+            if (definition != null)
+                return definition;
+
+            definition = ScriptableObject.CreateInstance<HeroDefinition>();
+            definition.name = "Kinetic Vanguard";
+            definition.ConfigureIdentity(
+                "kinetic-vanguard",
+                "Kinetic Vanguard",
+                "A close-range kinetic fighter who converts combat momentum into a devastating nova.",
+                new Color(.1f, .65f, 1f));
+            AssetDatabase.CreateAsset(definition, HeroDefinitionPath);
+            return definition;
+        }
+
         private static void EnsureFolders()
         {
             EnsureFolder("Assets/Prefabs");
@@ -318,6 +629,8 @@ namespace HeroVR.Editor
             EnsureFolder("Assets/Prefabs/Gameplay");
             EnsureFolder("Assets/Materials");
             EnsureFolder("Assets/Materials/Gameplay");
+            EnsureFolder("Assets/Heroes");
+            EnsureFolder("Assets/Heroes/KineticVanguard");
             EnsureFolder("Assets/Scenes");
             EnsureFolder("Assets/Scenes/Gameplay");
         }

@@ -3,13 +3,17 @@ using UnityEngine.InputSystem;
 using HeroVR.Abilities;
 using HeroVR.Combat;
 using HeroVR.Movement;
+using HeroVR.Heroes;
 
 namespace HeroVR.Prototype
 {
     [DefaultExecutionOrder(-100)]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController), typeof(Damageable), typeof(RespawnOnDeath))]
-    [RequireComponent(typeof(DesktopCharacterMotor), typeof(HeroAbilityLoadout))]
+    [RequireComponent(
+        typeof(DesktopCharacterMotor),
+        typeof(HeroAbilityLoadout),
+        typeof(CharacterKnockbackReceiver))]
     public sealed class DesktopHeroController : MonoBehaviour, IOpponentReceiver
     {
         [SerializeField] private Camera viewCamera;
@@ -19,6 +23,8 @@ namespace HeroVR.Prototype
 
         private Damageable health;
         private Damageable opponentHealth;
+        private HeroProfile heroProfile;
+        private HeroUltimateCharge ultimateCharge;
 
         public Damageable Health => health;
         public HeroAbilityLoadout AbilityLoadout => abilityLoadout;
@@ -26,6 +32,8 @@ namespace HeroVR.Prototype
         private void Awake()
         {
             health = GetComponent<Damageable>();
+            heroProfile = GetComponent<HeroProfile>();
+            ultimateCharge = GetComponent<HeroUltimateCharge>();
             motor = motor != null ? motor : GetComponent<DesktopCharacterMotor>();
             abilityLoadout = abilityLoadout != null
                 ? abilityLoadout
@@ -107,7 +115,10 @@ namespace HeroVR.Prototype
                 abilityLoadout.TryActivateSecondary();
 
             if (Keyboard.current.leftShiftKey.wasPressedThisFrame)
-                abilityLoadout.TryActivateMovementAbility();
+            {
+                abilityLoadout.TryActivateMovementAbility(
+                    motor.DesiredWorldMoveDirection);
+            }
 
             if (Keyboard.current.eKey.wasPressedThisFrame)
                 abilityLoadout.TryActivateUltimate();
@@ -204,20 +215,38 @@ namespace HeroVR.Prototype
             if (health == null)
                 return;
 
-            GUI.Box(new Rect(18, 18, 330, 150), "HERO VR — GAMEPLAY SANDBOX");
+            string heroName = heroProfile != null && heroProfile.Definition != null
+                ? heroProfile.Definition.DisplayName
+                : "HERO VR";
+            HeroDefinition definition = heroProfile != null
+                ? heroProfile.Definition
+                : null;
+            GUI.Box(new Rect(18, 18, 350, 190), $"{heroName.ToUpperInvariant()} — SANDBOX");
             GUI.Label(new Rect(32, 48, 300, 22),
-                $"Health: {Mathf.CeilToInt(health.CurrentHealth)}");
+                $"Health: {Mathf.CeilToInt(health.CurrentHealth)}/{Mathf.CeilToInt(health.MaxHealth)}");
+
+            if (ultimateCharge != null)
+            {
+                string ultimateStatus = ultimateCharge.IsUltimateReady
+                    ? "READY"
+                    : $"{Mathf.RoundToInt(ultimateCharge.NormalizedCharge * 100f)}%";
+                GUI.Label(new Rect(32, 70, 300, 22),
+                    $"{(definition != null ? definition.ResourceName : "Charge")} / " +
+                    $"{(definition != null ? definition.UltimateName : "Ultimate")}: {ultimateStatus}");
+            }
 
             if (opponentHealth != null)
             {
-                GUI.Label(new Rect(32, 70, 300, 22),
+                GUI.Label(new Rect(32, 92, 300, 22),
                     $"Enemy: {Mathf.CeilToInt(opponentHealth.CurrentHealth)}");
             }
 
-            GUI.Label(new Rect(32, 96, 300, 60),
+            GUI.Label(new Rect(32, 120, 320, 75),
                 "WASD Move | Mouse Look | Space Super Jump\n" +
-                "LMB Punch | RMB Blast | E Super Smash\n" +
-                "Shift Dash | Esc Release Mouse");
+                $"LMB {(definition != null ? definition.PrimaryName : "Punch")} | " +
+                $"RMB {(definition != null ? definition.SecondaryName : "Blast")}\n" +
+                $"E {(definition != null ? definition.UltimateName : "Ultimate")} (full charge)\n" +
+                $"Shift {(definition != null ? definition.MovementName : "Dash")} | Esc Release Mouse");
             GUI.Label(
                 new Rect(Screen.width / 2f - 5f, Screen.height / 2f - 12f, 20f, 25f),
                 "+");

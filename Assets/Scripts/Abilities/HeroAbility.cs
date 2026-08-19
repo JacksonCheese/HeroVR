@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using HeroVR.Combat;
 
@@ -13,6 +14,11 @@ namespace HeroVR.Abilities
         public bool IsReady => Time.time >= nextReadyTime;
         public float Cooldown => cooldown;
         public float CooldownRemaining => Mathf.Max(0f, nextReadyTime - Time.time);
+        public float NormalizedCooldown => cooldown <= 0f
+            ? 0f
+            : Mathf.Clamp01(CooldownRemaining / cooldown);
+
+        public event Action<HeroAbility> Activated;
 
         protected GameObject Owner => ownerHealth != null
             ? ownerHealth.gameObject
@@ -36,6 +42,7 @@ namespace HeroVR.Abilities
                 return false;
 
             nextReadyTime = Time.time + cooldown;
+            Activated?.Invoke(this);
             return true;
         }
 

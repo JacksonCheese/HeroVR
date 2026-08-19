@@ -22,6 +22,15 @@ namespace HeroVR.Movement
         private bool jumpRequested;
 
         public Transform ViewTransform => viewTransform;
+        public Vector3 DesiredWorldMoveDirection
+        {
+            get
+            {
+                Vector3 direction =
+                    transform.right * moveInput.x + transform.forward * moveInput.y;
+                return direction.sqrMagnitude > 1f ? direction.normalized : direction;
+            }
+        }
 
         private void Awake()
         {
@@ -92,8 +101,7 @@ namespace HeroVR.Movement
             jumpRequested = false;
             verticalVelocity.y += gravity * Time.deltaTime;
 
-            Vector3 horizontal =
-                (transform.right * moveInput.x + transform.forward * moveInput.y) * moveSpeed;
+            Vector3 horizontal = DesiredWorldMoveDirection * moveSpeed;
 
             characterController.Move((horizontal + verticalVelocity) * Time.deltaTime);
         }

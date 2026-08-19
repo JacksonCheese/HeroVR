@@ -1,13 +1,15 @@
 using UnityEngine;
 using HeroVR.Arena;
 using HeroVR.Combat;
+using UnityEngine.Serialization;
 
 namespace HeroVR.Gameplay
 {
     [DisallowMultipleComponent]
     public sealed class GameplayMatchBootstrap : MonoBehaviour
     {
-        [SerializeField] private GameObject desktopPlayerPrefab;
+        [FormerlySerializedAs("desktopPlayerPrefab")]
+        [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject trainingEnemyPrefab;
         [SerializeField] private bool startAutomatically = true;
 
@@ -26,7 +28,7 @@ namespace HeroVR.Gameplay
             GameObject enemyPrefab,
             bool autoStart = true)
         {
-            desktopPlayerPrefab = playerPrefab;
+            this.playerPrefab = playerPrefab;
             trainingEnemyPrefab = enemyPrefab;
             startAutomatically = autoStart;
         }
@@ -36,7 +38,7 @@ namespace HeroVR.Gameplay
             if (HasStarted)
                 return false;
 
-            if (desktopPlayerPrefab == null || trainingEnemyPrefab == null)
+            if (playerPrefab == null || trainingEnemyPrefab == null)
             {
                 Debug.LogError("Gameplay match requires player and enemy prefabs.", this);
                 return false;
@@ -64,7 +66,7 @@ namespace HeroVR.Gameplay
                 return false;
             }
 
-            SpawnedPlayer = InstantiateAt(desktopPlayerPrefab, playerSpawn.transform);
+            SpawnedPlayer = InstantiateAt(playerPrefab, playerSpawn.transform);
             SpawnedEnemy = InstantiateAt(trainingEnemyPrefab, enemySpawn.transform);
 
             Damageable playerHealth = SpawnedPlayer.GetComponentInChildren<Damageable>();
