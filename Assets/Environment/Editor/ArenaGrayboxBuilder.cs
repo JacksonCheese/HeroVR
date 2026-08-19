@@ -30,17 +30,26 @@ namespace HeroVR.EnvironmentTools
         private const float WallHeight = 12f;
         private const float WallThickness = 1.5f;
 
-        // Elevation tiers. Tier 1 is ramp-accessible; tier 2 and 3 need a jump, which is what
-        // gives super jump a reason to exist.
-        private const float DeckHeight = 3.8f;   // tier 1: wing decks + corner platforms
-        private const float LedgeHeight = 6.25f; // tier 2: tower ledges
-        private const float RoofHeight = 9.4f;   // tier 3: tower roofs
+        // The player's jump is capped by DesktopCharacterMotor (jumpHeight 2.6, gravity -22) and
+        // DashAbility is purely horizontal, so 2.6m is the hard vertical reach. Every jump-gated
+        // hop is held to MaxHopRise, leaving margin for an imprecise takeoff. Exceeding the jump
+        // height silently turns a tier into unreachable dead content.
+        private const float PlayerJumpHeight = 2.6f;
+        private const float MaxHopRise = 2f;
+
+        // Elevation tiers. Tier 1 is ramp-accessible so no mobility power is required; tiers 2
+        // and 3 sit one hop apart each, which is what gives the jump a reason to exist.
+        private const float DeckHeight = 3.8f;                     // tier 1: wing decks + corner platforms
+        private const float LedgeHeight = DeckHeight + MaxHopRise; // tier 2: tower ledges (5.8)
+        private const float RoofHeight = LedgeHeight + MaxHopRise; // tier 3: tower roofs (7.8)
+        private const float RoofThickness = .6f;
 
         private const float TowerCenterZ = 16f;
         private const float WingCenterX = 20f;
 
         // Height of a single walkable step. Must stay below the player CharacterController's
-        // step offset (currently 0.3 on DesktopPlayer) or on-foot characters cannot climb it.
+        // step offset or on-foot characters cannot climb it.
+        private const float PlayerStepOffset = .3f; // DesktopPlayer.prefab CharacterController
         private const float StepRise = .25f;
         private const float PlazaTopHeight = StepRise * 2f;
 
@@ -90,6 +99,8 @@ namespace HeroVR.EnvironmentTools
             MarkStaticRecursive(environment.gameObject);
             ConfigureSceneRendering();
 
+            ValidateTraversal();
+
             EditorSceneManager.MarkSceneDirty(scene);
             EnsureFolder(ScenesFolder);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -99,6 +110,37 @@ namespace HeroVR.EnvironmentTools
 
             Debug.Log("[ArenaGrayboxBuilder] Built " + ScenePath + " with " +
                       environment.GetComponentsInChildren<Renderer>().Length + " environment renderers.");
+        }
+
+        /// <summary>
+        /// Guards the two ways this arena can silently become unplayable: a step taller than the
+        /// player's CharacterController step offset (nothing can walk up it) or a hop taller than
+        /// the player's jump (the tier above becomes unreachable dead content). Both shipped as
+        /// real bugs once, so they are checked at build time rather than discovered in play.
+        /// </summary>
+        private static void ValidateTraversal()
+        {
+            WarnIfAbove("plaza step 1", StepRise, PlayerStepOffset);
+            WarnIfAbove("plaza step 2", StepRise, PlayerStepOffset);
+            WarnIfAbove("wing deck -> tower ledge", LedgeHeight - DeckHeight, PlayerJumpHeight);
+            WarnIfAbove("tower ledge -> tower roof", RoofHeight - LedgeHeight, PlayerJumpHeight);
+
+            Debug.Log(
+                "[ArenaGrayboxBuilder] Traversal: ground -> plaza " + PlazaTopHeight +
+                "m by " + StepRise + "m steps; ground -> deck " + DeckHeight +
+                "m by ramp; deck -> ledge " + (LedgeHeight - DeckHeight) +
+                "m hop; ledge -> roof " + (RoofHeight - LedgeHeight) +
+                "m hop. Player limits: step " + PlayerStepOffset + "m, jump " + PlayerJumpHeight + "m.");
+        }
+
+        private static void WarnIfAbove(string label, float rise, float limit)
+        {
+            if (rise > limit)
+            {
+                Debug.LogError(
+                    "[ArenaGrayboxBuilder] " + label + " rises " + rise +
+                    "m, above the player limit of " + limit + "m. That surface is unreachable.");
+            }
         }
 
         // ---------------------------------------------------------------------------------
@@ -159,18 +201,21 @@ namespace HeroVR.EnvironmentTools
         {
             Transform tower = Group(towerName, parent);
 
-            // Legs leave a 6m wide, ~8.8m tall passage between them.
-            Box("Leg_West", tower, new Vector3(-4.5f, 4.4f, centerZ), new Vector3(3f, 8.8f, 9f), wallMaterial);
-            Box("Leg_East", tower, new Vector3(4.5f, 4.4f, centerZ), new Vector3(3f, 8.8f, 9f), wallMaterial);
+            // Legs carry the roof, so their height is derived from it. They leave a 6m wide
+            // passage between them, still tall enough to fly through later.
+            float legHeight = RoofHeight - RoofThickness;
+            Box("Leg_West", tower, new Vector3(-4.5f, legHeight * .5f, centerZ), new Vector3(3f, legHeight, 9f), wallMaterial);
+            Box("Leg_East", tower, new Vector3(4.5f, legHeight * .5f, centerZ), new Vector3(3f, legHeight, 9f), wallMaterial);
 
             // Roof doubles as the arena's high ground, team-tinted so sides read at a glance.
-            Box("Roof", tower, new Vector3(0f, RoofHeight - .3f, centerZ), new Vector3(13f, .6f, 9f), teamMaterial);
+            Box("Roof", tower, new Vector3(0f, RoofHeight - RoofThickness * .5f, centerZ),
+                new Vector3(13f, RoofThickness, 9f), teamMaterial);
 
-            // Inner ledge: the short route up from the plaza side.
+            // Inner ledge: a tier 2 perch on the plaza face, and the drop-down route off the roof.
             float innerZ = centerZ - inwardSign * 5.2f;
             Box("Ledge_Inner", tower, new Vector3(0f, LedgeHeight - .25f, innerZ), new Vector3(6f, .5f, 2.5f), platformMaterial);
 
-            // Side ledges: the route in from the corner platforms.
+            // Side ledges: the climb in from the corner platforms, one hop below the roof.
             Box("Ledge_SideWest", tower, new Vector3(-7.5f, LedgeHeight - .25f, centerZ), new Vector3(3f, .5f, 6f), platformMaterial);
             Box("Ledge_SideEast", tower, new Vector3(7.5f, LedgeHeight - .25f, centerZ), new Vector3(3f, .5f, 6f), platformMaterial);
         }
