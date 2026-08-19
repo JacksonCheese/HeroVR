@@ -80,7 +80,10 @@ namespace HeroVR.Prototype
         {
             DesktopHeroController existingPlayer = FindAnyObjectByType<DesktopHeroController>();
             if (existingPlayer != null)
+            {
+                ConfigureRespawn(existingPlayer.gameObject, 1.25f);
                 return existingPlayer;
+            }
 
             GameObject playerObject = new GameObject("PrototypeHero");
             playerObject.transform.position = new Vector3(0f, .05f, -7f);
@@ -91,7 +94,9 @@ namespace HeroVR.Prototype
             controller.center = new Vector3(0f, .9f, 0f);
 
             playerObject.AddComponent<Damageable>();
-            return playerObject.AddComponent<DesktopHeroController>();
+            DesktopHeroController player = playerObject.AddComponent<DesktopHeroController>();
+            ConfigureRespawn(playerObject, 1.25f);
+            return player;
         }
 
         private static void DisableNonPlayerCameras(DesktopHeroController player)
@@ -109,7 +114,10 @@ namespace HeroVR.Prototype
         {
             TrainingBot existingEnemy = FindAnyObjectByType<TrainingBot>();
             if (existingEnemy != null)
+            {
+                ConfigureRespawn(existingEnemy.gameObject, 2f);
                 return existingEnemy;
+            }
 
             GameObject enemyObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemyObject.name = "EnemyHero";
@@ -121,7 +129,18 @@ namespace HeroVR.Prototype
             enemyBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             enemyObject.AddComponent<Damageable>();
-            return enemyObject.AddComponent<TrainingBot>();
+            TrainingBot enemy = enemyObject.AddComponent<TrainingBot>();
+            ConfigureRespawn(enemyObject, 2f);
+            return enemy;
+        }
+
+        private static void ConfigureRespawn(GameObject actor, float delay)
+        {
+            RespawnOnDeath respawn = actor.GetComponent<RespawnOnDeath>();
+            if (respawn == null)
+                respawn = actor.AddComponent<RespawnOnDeath>();
+
+            respawn.SetRespawnDelay(delay);
         }
 
         private static void CreatePhysicsPropsIfMissing()

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using HeroVR.Combat;
@@ -5,7 +6,7 @@ using HeroVR.Abilities;
 
 namespace HeroVR.Prototype
 {
-    [RequireComponent(typeof(CharacterController), typeof(Damageable))]
+    [RequireComponent(typeof(CharacterController), typeof(Damageable), typeof(RespawnOnDeath))]
     public class DesktopHeroController : MonoBehaviour
     {
         public float moveSpeed = 7f, jumpHeight = 2.6f, gravity = -22f;
@@ -16,8 +17,11 @@ namespace HeroVR.Prototype
         Damageable health;
         Camera cam;
         TrainingBot opponent;
-        Vector3 verticalVelocity, spawn;
+        Vector3 verticalVelocity;
         float pitch, nextPunch, nextBlast, nextDash, nextSmash;
+        readonly Collider[] smashHitBuffer = new Collider[64];
+        readonly HashSet<Damageable> smashDamageTargets = new HashSet<Damageable>();
+        readonly HashSet<Rigidbody> smashPhysicsTargets = new HashSet<Rigidbody>();
 
         public Damageable Health => health;
 
@@ -25,7 +29,6 @@ namespace HeroVR.Prototype
         {
             controller = GetComponent<CharacterController>();
             health = GetComponent<Damageable>();
-            spawn = transform.position;
 
             GameObject c = new GameObject("HeroCamera");
             c.transform.SetParent(transform);
@@ -57,10 +60,7 @@ namespace HeroVR.Prototype
 
             if (health.IsDead)
             {
-                controller.enabled = false;
-                transform.position = spawn;
-                controller.enabled = true;
-                health.ResetHealth();
+                verticalVelocity = Vector3.zero;
                 return;
             }
 
@@ -116,7 +116,12 @@ namespace HeroVR.Prototype
                 Damageable d = hit.GetComponentInParent<Damageable>();
                 if (d == null) continue;
 
-                d.TakeDamage(punchDamage);
+                d.TakeDamage(new DamageInfo(
+                    punchDamage,
+                    gameObject,
+                    hit.ClosestPoint(center),
+                    cam.transform.forward,
+                    punchForce));
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
                 if (rb != null && !rb.isKinematic)
                     rb.AddForce(cam.transform.forward * punchForce, ForceMode.Impulse);
@@ -140,7 +145,7 @@ namespace HeroVR.Prototype
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             EnergyProjectile projectile = p.AddComponent<EnergyProjectile>();
-            projectile.Launch(dir * blastSpeed);
+            projectile.Launch(dir * blastSpeed, gameObject);
         }
 
         void Dash()
@@ -153,21 +158,15 @@ namespace HeroVR.Prototype
         {
             nextSmash = Time.time + 4f;
 
-            foreach (Collider hit in Physics.OverlapSphere(transform.position, smashRadius))
-            {
-                if (hit.transform.root == transform.root) continue;
-
-                Damageable d = hit.GetComponentInParent<Damageable>();
-                if (d != null) d.TakeDamage(smashDamage);
-
-                Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
-                if (rb != null && !rb.isKinematic)
-                {
-                    Vector3 dir = (rb.worldCenterOfMass - transform.position).normalized;
-                    dir.y = Mathf.Max(dir.y, .35f);
-                    rb.AddForce(dir.normalized * smashForce, ForceMode.Impulse);
-                }
-            }
+            AreaDamage.Apply(
+                transform.position,
+                smashRadius,
+                smashDamage,
+                smashForce,
+                gameObject,
+                smashHitBuffer,
+                smashDamageTargets,
+                smashPhysicsTargets);
         }
 
         void OnGUI()

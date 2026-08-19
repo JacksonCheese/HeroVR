@@ -35,7 +35,9 @@ namespace HeroVR.Abilities
             EnergyProjectile projectile =
                 Instantiate(projectilePrefab, spawnPoint.position, spawnPoint.rotation);
 
-            projectile.Launch(spawnPoint.forward * projectileSpeed);
+            projectile.Launch(
+                spawnPoint.forward * projectileSpeed,
+                transform.root.gameObject);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -13,6 +14,10 @@ namespace HeroVR.Combat
         public float MaxHealth => maxHealth;
         public bool IsDead => CurrentHealth <= 0f;
 
+        public event Action<DamageInfo> Damaged;
+        public event Action<float, float> HealthChanged;
+        public event Action Died;
+
         private void Awake()
         {
             CurrentHealth = maxHealth;
@@ -20,13 +25,23 @@ namespace HeroVR.Combat
 
         public void TakeDamage(float amount)
         {
-            if (IsDead || amount <= 0f) return;
+            TakeDamage(new DamageInfo(amount));
+        }
 
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
-            onHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        public void TakeDamage(DamageInfo damageInfo)
+        {
+            if (IsDead || damageInfo.Amount <= 0f)
+                return;
+
+            CurrentHealth = Mathf.Max(0f, CurrentHealth - damageInfo.Amount);
+            Damaged?.Invoke(damageInfo);
+            NotifyHealthChanged();
 
             if (CurrentHealth <= 0f)
+            {
+                Died?.Invoke();
                 onDeath?.Invoke();
+            }
         }
 
         public void Heal(float amount)
@@ -34,13 +49,24 @@ namespace HeroVR.Combat
             if (IsDead || amount <= 0f) return;
 
             CurrentHealth = Mathf.Min(maxHealth, CurrentHealth + amount);
-            onHealthChanged?.Invoke(CurrentHealth, maxHealth);
+            NotifyHealthChanged();
         }
 
         public void ResetHealth()
         {
             CurrentHealth = maxHealth;
+            NotifyHealthChanged();
+        }
+
+        private void NotifyHealthChanged()
+        {
+            HealthChanged?.Invoke(CurrentHealth, maxHealth);
             onHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        }
+
+        private void OnValidate()
+        {
+            maxHealth = Mathf.Max(.01f, maxHealth);
         }
     }
 }

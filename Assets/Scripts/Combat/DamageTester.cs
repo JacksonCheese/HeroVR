@@ -1,27 +1,27 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace HeroVR.Combat
 {
     public class DamageTester : MonoBehaviour
     {
+        [SerializeField] private Key damageKey = Key.T;
+
         private Damageable damageable;
 
-        void Start()
+        private void Awake()
         {
             damageable = GetComponent<Damageable>();
         }
 
-        void Update()
+        private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                damageable.TakeDamage(10f);
+            if (Keyboard.current == null ||
+                !Keyboard.current[damageKey].wasPressedThisFrame)
+                return;
 
-                Debug.Log(
-                    "Dummy Health: " +
-                    damageable.CurrentHealth
-                );
-            }
+            damageable.TakeDamage(10f);
+            Debug.Log($"Dummy Health: {damageable.CurrentHealth}");
         }
     }
 }

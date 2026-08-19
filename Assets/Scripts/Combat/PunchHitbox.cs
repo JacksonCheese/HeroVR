@@ -15,10 +15,12 @@ namespace HeroVR.Combat
         [SerializeField] private float maxKnockbackImpulse = 12f;
 
         private Rigidbody rb;
+        private Damageable owner;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
+            owner = GetComponentInParent<Damageable>();
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -27,15 +29,24 @@ namespace HeroVR.Combat
             if (speed < minimumHitSpeed) return;
 
             var target = collision.collider.GetComponentInParent<Damageable>();
-            if (target == null) return;
+            if (target == null || target == owner) return;
 
             float damage = Mathf.Min(speed * damagePerMeterPerSecond, maxDamage);
-            target.TakeDamage(damage);
+            Vector3 direction = rb.linearVelocity.normalized;
+            float impulse = Mathf.Min(speed * knockbackMultiplier, maxKnockbackImpulse);
+            Vector3 hitPoint = collision.contactCount > 0
+                ? collision.GetContact(0).point
+                : transform.position;
+
+            target.TakeDamage(new DamageInfo(
+                damage,
+                owner != null ? owner.gameObject : gameObject,
+                hitPoint,
+                direction,
+                impulse));
 
             if (collision.rigidbody != null && !collision.rigidbody.isKinematic)
             {
-                Vector3 direction = rb.linearVelocity.normalized;
-                float impulse = Mathf.Min(speed * knockbackMultiplier, maxKnockbackImpulse);
                 collision.rigidbody.AddForce(direction * impulse, ForceMode.Impulse);
             }
         }

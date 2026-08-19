@@ -1,0 +1,19 @@
+{
+  "name": "HeroVR.PlayModeTests",
+  "rootNamespace": "HeroVR.Tests",
+  "references": [
+    "HeroVR.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
