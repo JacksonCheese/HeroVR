@@ -39,6 +39,11 @@ namespace HeroVR.EnvironmentTools
         private const float TowerCenterZ = 16f;
         private const float WingCenterX = 20f;
 
+        // Height of a single walkable step. Must stay below the player CharacterController's
+        // step offset (currently 0.3 on DesktopPlayer) or on-foot characters cannot climb it.
+        private const float StepRise = .25f;
+        private const float PlazaTopHeight = StepRise * 2f;
+
         // Materials, cached across the build so every instance shares one material and batching
         // is not defeated by per-object copies.
         private static Material groundMaterial;
@@ -121,13 +126,21 @@ namespace HeroVR.EnvironmentTools
             Instantiate(wallPrefab, "Wall_West", group, new Vector3(-offset, WallHeight * .5f, 0f), Quaternion.Euler(0f, 90f, 0f));
         }
 
-        /// <summary>Two shallow steps at the middle of the map, to read as the focal fight zone.</summary>
+        /// <summary>
+        /// Two shallow steps at the middle of the map, to read as the focal fight zone.
+        ///
+        /// Each riser is <see cref="StepRise"/> so both stay under the player CharacterController's
+        /// 0.3 step offset. Taller steps made the plaza unreachable on foot: the player could not
+        /// step up, and the Rigidbody-driven training bot wedged against the face indefinitely.
+        /// </summary>
         private static void BuildPlaza(Transform parent)
         {
             Transform group = Group("Plaza", parent);
 
-            Box("PlazaStepLower", group, new Vector3(0f, .2f, 0f), new Vector3(22f, .4f, 22f), plazaMaterial);
-            Box("PlazaStepUpper", group, new Vector3(0f, .45f, 0f), new Vector3(15f, .9f, 15f), plazaMaterial);
+            Box("PlazaStepLower", group, new Vector3(0f, StepRise * .5f, 0f),
+                new Vector3(22f, StepRise, 22f), plazaMaterial);
+            Box("PlazaStepUpper", group, new Vector3(0f, StepRise, 0f),
+                new Vector3(15f, StepRise * 2f, 15f), plazaMaterial);
         }
 
         /// <summary>
@@ -248,12 +261,14 @@ namespace HeroVR.EnvironmentTools
             Transform group = Group("Cover", parent);
 
             // On the plaza, angled so they break line of sight diagonally across the centre.
+            // Y is derived from the plaza top so the blocks stay seated if the steps change.
+            float plazaCoverY = PlazaTopHeight + 1f;
             Vector3[] plazaCover =
             {
-                new Vector3(-5f, 1.9f, -5f),
-                new Vector3(5f, 1.9f, -5f),
-                new Vector3(-5f, 1.9f, 5f),
-                new Vector3(5f, 1.9f, 5f)
+                new Vector3(-5f, plazaCoverY, -5f),
+                new Vector3(5f, plazaCoverY, -5f),
+                new Vector3(-5f, plazaCoverY, 5f),
+                new Vector3(5f, plazaCoverY, 5f)
             };
 
             for (int index = 0; index < plazaCover.Length; index++)
