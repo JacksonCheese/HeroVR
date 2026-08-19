@@ -1,43 +1,62 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace HeroVR.Abilities
 {
-    public class ProjectileCaster : MonoBehaviour
+    public sealed class ProjectileCaster : HeroAbility
     {
         [SerializeField] private EnergyProjectile projectilePrefab;
         [SerializeField] private Transform spawnPoint;
-        [SerializeField] private InputActionProperty fireAction;
         [SerializeField] private float projectileSpeed = 20f;
-        [SerializeField] private float cooldown = 0.4f;
 
-        private float nextFireTime;
+        public EnergyProjectile ProjectilePrefab => projectilePrefab;
+        public Transform SpawnPoint => spawnPoint;
 
-        private void OnEnable()
+        public void Configure(
+            EnergyProjectile prefab,
+            Transform projectileSpawnPoint,
+            float speed)
         {
-            fireAction.action.Enable();
-            fireAction.action.performed += Fire;
+            projectilePrefab = prefab;
+            spawnPoint = projectileSpawnPoint;
+            projectileSpeed = Mathf.Max(0f, speed);
         }
 
-        private void OnDisable()
+        public void SetProjectilePrefab(EnergyProjectile prefab)
         {
-            fireAction.action.performed -= Fire;
-            fireAction.action.Disable();
+            projectilePrefab = prefab;
         }
 
-        private void Fire(InputAction.CallbackContext context)
+        public void SetSpawnPoint(Transform projectileSpawnPoint)
         {
-            if (Time.time < nextFireTime || projectilePrefab == null || spawnPoint == null)
-                return;
+            spawnPoint = projectileSpawnPoint;
+        }
 
-            nextFireTime = Time.time + cooldown;
+        protected override bool CanActivate()
+        {
+            return projectilePrefab != null && spawnPoint != null;
+        }
 
-            EnergyProjectile projectile =
-                Instantiate(projectilePrefab, spawnPoint.position, spawnPoint.rotation);
+        protected override bool Activate()
+        {
+            EnergyProjectile projectile = Instantiate(
+                projectilePrefab,
+                spawnPoint.position,
+                spawnPoint.rotation);
+
+            if (!projectile.gameObject.activeSelf)
+                projectile.gameObject.SetActive(true);
 
             projectile.Launch(
                 spawnPoint.forward * projectileSpeed,
-                transform.root.gameObject);
+                Owner);
+
+            return true;
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            projectileSpeed = Mathf.Max(0f, projectileSpeed);
         }
     }
 }
