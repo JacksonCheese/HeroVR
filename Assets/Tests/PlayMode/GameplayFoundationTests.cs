@@ -4,6 +4,7 @@ using HeroVR.Arena;
 using HeroVR.Combat;
 using HeroVR.Gameplay;
 using HeroVR.Prototype;
+using HeroVR.XR;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -85,6 +86,63 @@ namespace HeroVR.Tests
             Assert.That(dash.TryActivate(), Is.True);
             Assert.That(actor.transform.position.x, Is.LessThan(-4.9f));
             Assert.That(Mathf.Abs(actor.transform.position.z), Is.LessThan(.01f));
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator XRCharacterMotor_UsesHeadRelativeMovementDirection()
+        {
+            GameObject actor = new GameObject("XRMovementActor");
+            actor.AddComponent<CharacterController>();
+            actor.AddComponent<Damageable>();
+            XRCharacterMotor motor = actor.AddComponent<XRCharacterMotor>();
+
+            GameObject headObject = new GameObject("Head");
+            headObject.transform.SetParent(actor.transform, false);
+            headObject.transform.localPosition = Vector3.up * 1.7f;
+            headObject.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+            motor.Configure(headObject.transform);
+            motor.SetMoveInput(Vector2.up);
+
+            Vector3 direction = motor.DesiredWorldMoveDirection;
+            Assert.That(direction.x, Is.GreaterThan(.99f));
+            Assert.That(Mathf.Abs(direction.z), Is.LessThan(.01f));
+
+            Vector3 headPosition = headObject.transform.position;
+            motor.RequestSnapTurn(1f);
+            Assert.That(
+                Vector3.Distance(headObject.transform.position, headPosition),
+                Is.LessThan(.001f));
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedHandFollower_ReportsTrackingVelocity()
+        {
+            GameObject actor = new GameObject("XRHandOwner");
+            actor.AddComponent<Damageable>();
+
+            GameObject target = new GameObject("TrackedController");
+            target.transform.SetParent(actor.transform, false);
+
+            GameObject hand = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            hand.name = "PhysicsHand";
+            hand.transform.SetParent(actor.transform, false);
+            hand.AddComponent<Rigidbody>();
+            TrackedHandPhysicsFollower follower =
+                hand.AddComponent<TrackedHandPhysicsFollower>();
+            follower.Configure(target.transform);
+
+            yield return new WaitForFixedUpdate();
+            target.transform.position = Vector3.right * .1f;
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(follower.Velocity.x, Is.GreaterThan(0f));
+            Assert.That(follower.Velocity.magnitude, Is.LessThanOrEqualTo(20.01f));
 
             Object.Destroy(actor);
             yield return null;

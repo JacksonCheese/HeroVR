@@ -2,7 +2,8 @@
   "name": "HeroVR.Runtime",
   "rootNamespace": "HeroVR",
   "references": [
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.XR.CoreUtils"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

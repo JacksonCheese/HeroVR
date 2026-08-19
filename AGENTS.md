@@ -133,9 +133,18 @@ The current custom code is organized under `Assets/Scripts`:
 - `Combat/DamageTester.cs` is temporary diagnostic code.
 - `Abilities/EnergyProjectile.cs` contains projectile collision, damage, and knockback behavior.
 - `Abilities/ProjectileCaster.cs` is the current action-to-projectile bridge.
+- `Abilities/HeroAbilityLoadout.cs` is the shared ability command surface for desktop and XR input.
+- `Movement/DesktopCharacterMotor.cs` owns desktop locomotion without owning keyboard input.
 - `Prototype/DesktopHeroController.cs` is the temporary desktop vertical slice.
 - `Prototype/TrainingBot.cs` is the initial enemy implementation.
 - `Prototype/PrototypeArenaBootstrap.cs` constructs the current prototype arena at runtime.
+- `XR/XRCharacterMotor.cs` owns head-relative XR locomotion and comfort snap turning.
+- `XR/XRHeroInputAdapter.cs` maps Quest/OpenXR controls into the shared locomotion and ability APIs.
+- `XR/TrackedHandPhysicsFollower.cs` drives kinematic punch proxies and supplies tracked velocity to `PunchHitbox`.
+- `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
+
+The gameplay-owned validation scenes are `Assets/Scenes/Gameplay/GameplaySandbox.unity`
+and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. They are not production arenas.
 
 Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:
 
@@ -170,6 +179,7 @@ Design local combat so it can later become server-authoritative, but do not add 
 - Keep desktop prototype play possible while XR support is added, unless the user explicitly ends desktop support.
 - XR initialization should be deliberate per build target. Desktop prototype testing must not require an active headset or desktop OpenXR runtime.
 - Quest controller profiles and hand tracking are separate interaction paths; do not assume hand tracking is required for the first Quest milestone.
+- The initial XR bindings use left stick movement, right stick snap turn, left X jump, left stick-click dash, right trigger projectile, and right A radial smash. Physical hand velocity activates punch damage through `PunchHitbox` rather than a button binding.
 
 ## Quest 2 Performance Baseline
 
