@@ -195,6 +195,7 @@ MonoBehaviour:
   turnSpeed: 8
   attackRange: 1.75
   attackDamage: 12
+  attackKnockbackImpulse: 7
   attackWindup: 0.3
   attackCooldown: 0.9
   attackFacingAngle: 65

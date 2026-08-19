@@ -51,6 +51,46 @@ namespace HeroVR.Tests
         }
 
         [UnityTest]
+        public IEnumerator CharacterKnockbackReceiver_MovesCharacterControllerFromDamage()
+        {
+            GameObject actor = new GameObject("KnockbackActor");
+            actor.AddComponent<CharacterController>();
+            Damageable health = actor.AddComponent<Damageable>();
+            actor.AddComponent<CharacterKnockbackReceiver>();
+
+            health.TakeDamage(new DamageInfo(
+                1f,
+                null,
+                actor.transform.position,
+                Vector3.right,
+                5f));
+
+            yield return null;
+
+            Assert.That(actor.transform.position.x, Is.GreaterThan(0f));
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DashAbility_UsesRequestedWorldDirection()
+        {
+            GameObject actor = new GameObject("DirectionalDashActor");
+            actor.AddComponent<CharacterController>();
+            actor.AddComponent<Damageable>();
+            DashAbility dash = actor.AddComponent<DashAbility>();
+            dash.SetDirection(Vector3.left);
+
+            Assert.That(dash.TryActivate(), Is.True);
+            Assert.That(actor.transform.position.x, Is.LessThan(-4.9f));
+            Assert.That(Mathf.Abs(actor.transform.position.z), Is.LessThan(.01f));
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator MatchBootstrap_DiscoversSpawnPointsAndConnectsGenericTarget()
         {
             GameObject playerPrefab = new GameObject("PlayerPrefabSource");

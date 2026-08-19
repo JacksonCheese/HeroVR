@@ -112,6 +112,7 @@ namespace HeroVR.Editor
 
             root.AddComponent<Damageable>();
             root.AddComponent<RespawnOnDeath>();
+            root.AddComponent<CharacterKnockbackReceiver>();
             DesktopCharacterMotor motor = root.AddComponent<DesktopCharacterMotor>();
 
             MeleePunchAbility punch = root.AddComponent<MeleePunchAbility>();

@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 6856292600866093785}
   - component: {fileID: 5603833860746440300}
   - component: {fileID: 6222981607402673453}
+  - component: {fileID: 3208672998284188887}
   - component: {fileID: 8223760146048106990}
   - component: {fileID: 4186600347337985862}
   - component: {fileID: 6962007671865741787}
@@ -193,6 +194,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.RespawnOnDeath
   respawnPoint: {fileID: 0}
   respawnDelay: 2
+--- !u!114 &3208672998284188887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2555118881757359306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd7169e25f3c2433c95c474039ffd69b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.CharacterKnockbackReceiver
+  impulseToSpeed: 1
+  deceleration: 14
 --- !u!114 &8223760146048106990
 MonoBehaviour:
   m_ObjectHideFlags: 0

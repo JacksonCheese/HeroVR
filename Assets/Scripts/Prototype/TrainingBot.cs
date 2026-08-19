@@ -14,6 +14,7 @@ namespace HeroVR.Prototype
         [Header("Attack")]
         [SerializeField] private float attackRange = 1.75f;
         [SerializeField] private float attackDamage = 12f;
+        [SerializeField] private float attackKnockbackImpulse = 7f;
         [SerializeField] private float attackWindup = .3f;
         [SerializeField] private float attackCooldown = .9f;
         [SerializeField, Range(1f, 180f)] private float attackFacingAngle = 65f;
@@ -125,11 +126,14 @@ namespace HeroVR.Prototype
                 !HasLineOfSight())
                 return;
 
+            Vector3 knockbackDirection =
+                (horizontalToTarget.normalized + Vector3.up * .08f).normalized;
             target.TakeDamage(new DamageInfo(
                 attackDamage,
                 gameObject,
                 target.transform.position + Vector3.up * .9f,
-                horizontalToTarget));
+                knockbackDirection,
+                attackKnockbackImpulse));
         }
 
         private bool IsFacingTarget(Vector3 direction)
@@ -186,6 +190,7 @@ namespace HeroVR.Prototype
             turnSpeed = Mathf.Max(0f, turnSpeed);
             attackRange = Mathf.Max(.1f, attackRange);
             attackDamage = Mathf.Max(0f, attackDamage);
+            attackKnockbackImpulse = Mathf.Max(0f, attackKnockbackImpulse);
             attackWindup = Mathf.Max(0f, attackWindup);
             attackCooldown = Mathf.Max(0f, attackCooldown);
         }

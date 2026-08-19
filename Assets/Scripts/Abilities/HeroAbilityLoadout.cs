@@ -30,6 +30,14 @@ namespace HeroVR.Abilities
             return movementAbility != null && movementAbility.TryActivate();
         }
 
+        public bool TryActivateMovementAbility(Vector3 worldDirection)
+        {
+            if (movementAbility is IDirectionalAbility directionalAbility)
+                directionalAbility.SetDirection(worldDirection);
+
+            return TryActivateMovementAbility();
+        }
+
         public bool TryActivateUltimate()
         {
             return ultimateAbility != null && ultimateAbility.TryActivate();

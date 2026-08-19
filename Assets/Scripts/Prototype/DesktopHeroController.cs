@@ -9,7 +9,10 @@ namespace HeroVR.Prototype
     [DefaultExecutionOrder(-100)]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController), typeof(Damageable), typeof(RespawnOnDeath))]
-    [RequireComponent(typeof(DesktopCharacterMotor), typeof(HeroAbilityLoadout))]
+    [RequireComponent(
+        typeof(DesktopCharacterMotor),
+        typeof(HeroAbilityLoadout),
+        typeof(CharacterKnockbackReceiver))]
     public sealed class DesktopHeroController : MonoBehaviour, IOpponentReceiver
     {
         [SerializeField] private Camera viewCamera;
@@ -107,7 +110,10 @@ namespace HeroVR.Prototype
                 abilityLoadout.TryActivateSecondary();
 
             if (Keyboard.current.leftShiftKey.wasPressedThisFrame)
-                abilityLoadout.TryActivateMovementAbility();
+            {
+                abilityLoadout.TryActivateMovementAbility(
+                    motor.DesiredWorldMoveDirection);
+            }
 
             if (Keyboard.current.eKey.wasPressedThisFrame)
                 abilityLoadout.TryActivateUltimate();
