@@ -1,0 +1,224 @@
+# HeroVR Project Guide
+
+This file applies to the entire repository. It is the persistent working agreement for Codex and other coding agents contributing to HeroVR.
+
+## Project Purpose
+
+HeroVR is a private Unity VR superhero arena fighting game for the project owner and friends.
+
+Current product goals:
+
+- Target Meta Quest 2 first.
+- Preserve compatibility with Quest 3 as the project develops.
+- Support 1v1 play first and expand to 2v2 later.
+- Build heroes with distinct, reusable powers.
+- Stabilize local gameplay before adding multiplayer.
+- Eventually support private multiplayer lobbies.
+
+This is a private game, not currently a public live-service product. Favor a reliable, enjoyable small-group experience over unnecessary platform or backend complexity.
+
+## Current Technology
+
+- Unity 6
+- Universal Render Pipeline is the intended render pipeline.
+- OpenXR
+- XR Interaction Toolkit
+- Unity Input System
+- Meta Quest 2 is the performance and interaction baseline.
+
+Do not introduce a second input, XR, rendering, physics, or networking framework without explaining the need and receiving approval.
+
+## Development Roadmap
+
+Work incrementally in this order unless the user explicitly reprioritizes it:
+
+1. Stabilize the desktop prototype v0.1.
+2. Improve combat behavior and the training enemy.
+3. Add a reusable hero ability system.
+4. Add an XR player rig.
+5. Map Quest controllers and hands to the same ability system.
+6. Test and profile on Quest 2.
+7. Create the first complete superhero-style character.
+8. Add multiplayer 1v1.
+9. Add private lobbies.
+10. Expand to 2v2.
+
+Do not pull later milestones forward when doing so would destabilize the current milestone. In particular, do not add networking abstractions or XR-specific behavior throughout the desktop prototype before the local gameplay loop is stable.
+
+## Prototype v0.1 Scope
+
+The desktop prototype should provide:
+
+- WASD movement
+- Mouse camera control
+- Super jump
+- Dash
+- Melee punch
+- Energy projectile
+- Radial super smash
+- Health and death
+- Enemy AI
+- Knockback
+- Respawning
+- Physics arena objects
+
+Treat this list as the acceptance target for the current milestone. Prefer completing and verifying this loop over adding new powers, presentation systems, or content.
+
+## Architectural Direction
+
+The eventual runtime architecture must keep these responsibilities separate:
+
+1. Character abilities and their gameplay rules
+2. Combat, damage, health, death, knockback, and teams
+3. Player input and input-device mapping
+4. XR rig, tracking, hands, and controller integration
+5. Networking, ownership, authority, replication, and lobbies
+
+The same gameplay ability should be activatable by desktop input, Quest controllers, AI, and eventually network commands. An ability must not need to know which physical input device activated it.
+
+Preferred dependency direction:
+
+```text
+Desktop input ─┐
+XR input ──────┼──> character/ability commands ──> abilities ──> combat
+AI input ──────┘
+
+Networking coordinates authoritative commands and replicated results; it should not own hero design rules.
+```
+
+Keep Unity-facing adapters thin where practical. Put reusable gameplay rules behind explicit methods and data rather than reading keyboard, mouse, or XR controls directly inside every ability.
+
+Do not over-engineer this architecture before the prototype proves what it needs. Add interfaces, base classes, ScriptableObjects, event channels, or dependency-injection mechanisms only when they solve a concrete reuse, testing, configuration, or ownership problem.
+
+## Existing Systems to Preserve
+
+The current custom code is organized under `Assets/Scripts`:
+
+- `Combat/Damageable.cs` is the working health foundation and has already been tested successfully.
+- `Combat/PunchHitbox.cs` contains velocity-based physical punch behavior.
+- `Combat/RespawnOnDeath.cs` is the current reusable respawn component.
+- `Combat/DamageTester.cs` is temporary diagnostic code.
+- `Abilities/EnergyProjectile.cs` contains projectile collision, damage, and knockback behavior.
+- `Abilities/ProjectileCaster.cs` is the current action-to-projectile bridge.
+- `Prototype/DesktopHeroController.cs` is the temporary desktop vertical slice.
+- `Prototype/TrainingBot.cs` is the initial enemy implementation.
+- `Prototype/PrototypeArenaBootstrap.cs` constructs the current prototype arena at runtime.
+
+Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:
+
+1. Explain the concrete limitation or bug.
+2. State what behavior must be preserved.
+3. Prefer a small extraction, adapter, or migration.
+4. Verify the replacement before removing the old path.
+5. Ask for direction when the tradeoff changes gameplay or project scope.
+
+Temporary prototype code may remain intentionally coupled while v0.1 is being stabilized. Separate it gradually at tested seams.
+
+## Combat and Ability Conventions
+
+- `Damageable` (or its deliberately evolved successor) remains the single source of truth for health and death state on a combatant.
+- Do not create parallel health implementations for the desktop player, XR player, AI, or network player.
+- Route damage through a consistent combat API. As requirements grow, include source/owner, instigator, team, hit point, direction, damage type, and knockback data in a shared hit description rather than expanding unrelated one-off methods.
+- An area attack must damage each logical target at most once per activation, even when the target has multiple colliders.
+- Projectiles and attacks must track their owner or instigator so they can apply self-hit and team rules consistently.
+- Decide self-damage and friendly-fire behavior explicitly; do not let collider layout determine it accidentally.
+- Cooldowns and activation state belong to reusable ability gameplay, not exclusively to a particular keyboard or controller binding.
+- Avoid making visual effects, sound, haptics, or UI responsible for applying authoritative gameplay results.
+- Keep physics work in the appropriate Unity loop. Apply Rigidbody motion/forces consistently and avoid frame-rate-dependent physics.
+
+Design local combat so it can later become server-authoritative, but do not add a networking package or speculative replication code until the multiplayer milestone is approved.
+
+## Input and XR Conventions
+
+- Use the Unity Input System for new input code. Do not add new uses of legacy `UnityEngine.Input`.
+- Input components translate device state into character or ability commands; they should not implement damage rules.
+- Desktop and XR input should call the same public locomotion and ability APIs.
+- Do not simulate tracked hands by moving authoritative combat state from render-only transforms without accounting for physics timing and velocity.
+- Keep desktop prototype play possible while XR support is added, unless the user explicitly ends desktop support.
+- XR initialization should be deliberate per build target. Desktop prototype testing must not require an active headset or desktop OpenXR runtime.
+- Quest controller profiles and hand tracking are separate interaction paths; do not assume hand tracking is required for the first Quest milestone.
+
+## Quest 2 Performance Baseline
+
+Quest 2 is the minimum supported device and performance budget. Quest 3 improvements must not silently make Quest 2 unusable.
+
+- Profile on device; Editor performance is not representative.
+- Favor stable frame timing and comfort over visual complexity.
+- Use URP configurations intended for mobile VR.
+- Avoid per-frame managed allocations in gameplay loops.
+- Cache component references used frequently.
+- Pool frequently spawned projectiles, effects, and temporary combat objects once prototype behavior is stable.
+- Avoid creating materials or primitives repeatedly during normal gameplay in production paths.
+- Keep shaders, realtime lights, transparent effects, particles, shadows, physics bodies, and draw calls conservative.
+- Treat render scale, anti-aliasing, foveated rendering, batching, and shader variants as measured configuration choices.
+- Avoid expensive global searches during gameplay. Startup-only prototype searches are acceptable when documented and small.
+- Test thermal behavior and sustained performance, not only short sessions.
+
+Do not prematurely micro-optimize clear prototype code. Fix measured problems and obvious high-frequency allocations first.
+
+## Unity Coding Conventions
+
+- Place runtime C# under `Assets/Scripts` in a responsibility-based folder.
+- Use the root namespace `HeroVR`, with responsibility namespaces such as `HeroVR.Combat`, `HeroVR.Abilities`, `HeroVR.Input`, `HeroVR.XR`, and `HeroVR.Networking`.
+- Use one primary public type per C# file and match the file name to the type name.
+- Prefer `private` serialized fields (`[SerializeField] private`) over mutable public fields for production code.
+- Expose read-only state through properties where other systems need it.
+- Use explicit access modifiers in production code.
+- Validate required components with `RequireComponent`, `Awake`, or `OnValidate` as appropriate.
+- Subscribe and unsubscribe event handlers symmetrically, normally in `OnEnable` and `OnDisable`.
+- Avoid repeated `GetComponent`, scene searches, LINQ allocations, or collection creation inside `Update`/`FixedUpdate`.
+- Use `Update` for input sampling and non-physics presentation; use `FixedUpdate` for Rigidbody-driven simulation.
+- Use `Time.deltaTime` or `Time.fixedDeltaTime` for time-based behavior as appropriate.
+- Prefer understandable names and focused components over abbreviated or overly generic abstractions.
+- Add comments for intent, invariants, non-obvious physics choices, or platform constraints—not for restating the code.
+- Keep diagnostic scripts and prototype-only UI clearly labeled and easy to exclude from production builds.
+- Do not edit imported package/sample files unless the task specifically requires it.
+
+Follow the APIs supported by the installed Unity version. For Unity 6 Rigidbody code, use the current velocity/damping APIs already present in the project unless package or platform compatibility requires otherwise.
+
+## Assets, Scenes, and Repository Hygiene
+
+- Preserve `.meta` files and their GUIDs when moving Unity assets.
+- Move or rename assets together with their `.meta` files.
+- Do not commit generated Unity directories such as `Library`, `Temp`, `Logs`, `obj`, or build output.
+- Inspect `git status` before editing. Existing changes belong to the user and must not be discarded or overwritten.
+- Never use destructive Git commands to clean the project without explicit approval.
+- Prefer small, reviewable changes aligned with one milestone.
+- Avoid hand-editing scene or prefab YAML when a safer Unity Editor workflow is available. If serialized YAML must be edited, make a minimal change and validate it in Unity.
+- Do not silently change Project Settings, packages, render pipeline, XR providers, Android settings, or build scenes. Explain why each configuration change is necessary.
+- Do not add third-party assets or packages unless they provide clear value for the active milestone and the user approves the dependency.
+
+## Verification Expectations
+
+For every gameplay change:
+
+1. Confirm scripts compile without new errors.
+2. Run the most relevant Edit Mode or Play Mode tests when available.
+3. Exercise the affected behavior in the appropriate scene when practical.
+4. Check the Unity Console/log for new exceptions and important warnings.
+5. Report what was verified and what still requires manual Editor or headset testing.
+
+Add focused tests as stable seams emerge. High-value early tests include:
+
+- damage, healing, death, and reset behavior
+- one death event per life
+- ability cooldown behavior
+- one area-hit result per target
+- projectile owner/self-hit rules
+- respawn state and position reset
+- attack rejection while dead
+
+For Quest changes, a successful Editor test is not sufficient. Clearly identify when an Android build, on-device check, controller check, tracking check, or performance capture remains outstanding.
+
+## Working Style for Codex
+
+- Inspect relevant code, scenes, packages, settings, logs, and repository state before proposing broad changes.
+- Lead with the observed problem and the smallest useful next step.
+- Preserve verified behavior while improving its implementation.
+- Explain architectural migrations before performing them.
+- If a request is diagnostic, report findings without implementing unrelated fixes.
+- If a request authorizes implementation, complete and verify the requested increment without expanding into later roadmap stages.
+- Call out assumptions, especially around combat rules, comfort, input mapping, multiplayer authority, and Quest performance.
+- Leave concise handoff notes: files changed, behavior changed, verification performed, and remaining manual steps.
+
+When uncertain, prioritize a stable and playable desktop v0.1, then evolve it toward shared desktop/XR abilities in measured steps.
