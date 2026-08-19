@@ -18,6 +18,18 @@ namespace HeroVR.Abilities
             attackOrigin = origin;
         }
 
+        public void ConfigureCombat(
+            float damageAmount,
+            float attackRange,
+            float attackRadius,
+            float impulse)
+        {
+            damage = Mathf.Max(0f, damageAmount);
+            range = Mathf.Max(0f, attackRange);
+            radius = Mathf.Max(0f, attackRadius);
+            knockbackImpulse = Mathf.Max(0f, impulse);
+        }
+
         protected override bool Activate()
         {
             Transform origin = attackOrigin != null ? attackOrigin : transform;

@@ -10,6 +10,8 @@ namespace HeroVR.Abilities
         [SerializeField] private HeroAbility movementAbility;
         [SerializeField] private HeroAbility ultimateAbility;
 
+        private IUltimateResource ultimateResource;
+
         public HeroAbility PrimaryAttack => primaryAttack;
         public HeroAbility SecondaryAttack => secondaryAttack;
         public HeroAbility MovementAbility => movementAbility;
@@ -40,7 +42,14 @@ namespace HeroVR.Abilities
 
         public bool TryActivateUltimate()
         {
-            return ultimateAbility != null && ultimateAbility.TryActivate();
+            IUltimateResource resource = GetUltimateResource();
+            if (resource != null && !resource.IsUltimateReady)
+                return false;
+
+            if (ultimateAbility == null || !ultimateAbility.TryActivate())
+                return false;
+
+            return resource == null || resource.TryConsumeUltimate();
         }
 
         public void Configure(
@@ -53,6 +62,24 @@ namespace HeroVR.Abilities
             secondaryAttack = secondary;
             movementAbility = movement;
             ultimateAbility = ultimate;
+        }
+
+        private IUltimateResource GetUltimateResource()
+        {
+            if (ultimateResource != null)
+                return ultimateResource;
+
+            MonoBehaviour[] behaviours = GetComponents<MonoBehaviour>();
+            for (int index = 0; index < behaviours.Length; index++)
+            {
+                if (behaviours[index] is IUltimateResource resource)
+                {
+                    ultimateResource = resource;
+                    break;
+                }
+            }
+
+            return ultimateResource;
         }
     }
 }

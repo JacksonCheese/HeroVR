@@ -3,6 +3,7 @@ using HeroVR.Abilities;
 using HeroVR.Arena;
 using HeroVR.Combat;
 using HeroVR.Gameplay;
+using HeroVR.Heroes;
 using HeroVR.Prototype;
 using HeroVR.XR;
 using NUnit.Framework;
@@ -48,6 +49,45 @@ namespace HeroVR.Tests
             Assert.That(smash.TryActivate(), Is.False);
 
             Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator HeroProfile_AppliesStatsAndMomentumGatesUltimate()
+        {
+            HeroDefinition definition =
+                ScriptableObject.CreateInstance<HeroDefinition>();
+
+            GameObject actor = new GameObject("KineticVanguard");
+            actor.SetActive(false);
+            Damageable health = actor.AddComponent<Damageable>();
+            RadialSmashAbility ultimate = actor.AddComponent<RadialSmashAbility>();
+            HeroAbilityLoadout loadout = actor.AddComponent<HeroAbilityLoadout>();
+            loadout.Configure(null, null, null, ultimate);
+            HeroUltimateCharge charge = actor.AddComponent<HeroUltimateCharge>();
+            HeroProfile profile = actor.AddComponent<HeroProfile>();
+            profile.Configure(definition);
+            actor.SetActive(true);
+
+            Assert.That(health.MaxHealth, Is.EqualTo(125f));
+            Assert.That(loadout.TryActivateUltimate(), Is.False);
+
+            GameObject targetObject = new GameObject("MomentumTarget");
+            Damageable target = targetObject.AddComponent<Damageable>();
+            target.TakeDamage(new DamageInfo(40f, actor));
+            Assert.That(charge.CurrentCharge, Is.EqualTo(40f));
+
+            health.TakeDamage(new DamageInfo(20f, targetObject));
+            Assert.That(charge.CurrentCharge, Is.EqualTo(50f));
+
+            charge.AddCharge(50f);
+            Assert.That(charge.IsUltimateReady, Is.True);
+            Assert.That(loadout.TryActivateUltimate(), Is.True);
+            Assert.That(charge.CurrentCharge, Is.Zero);
+
+            Object.Destroy(actor);
+            Object.Destroy(targetObject);
+            Object.Destroy(definition);
             yield return null;
         }
 

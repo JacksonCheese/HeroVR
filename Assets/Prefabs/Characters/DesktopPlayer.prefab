@@ -112,6 +112,8 @@ GameObject:
   - component: {fileID: 2963711393637559314}
   - component: {fileID: 8227350747028928702}
   - component: {fileID: 6884868966315588551}
+  - component: {fileID: 181651738862102650}
+  - component: {fileID: 4988786545295562923}
   - component: {fileID: 9165589155883618390}
   m_Layer: 0
   m_Name: DesktopPlayer
@@ -173,7 +175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7fe1a6b115e341c486a53526abfcb45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.Damageable
-  maxHealth: 100
+  maxHealth: 125
   onHealthChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -237,12 +239,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fdb369afd7804ae38810bd7bacada22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.MeleePunchAbility
-  cooldown: 0.35
+  cooldown: 0.32
   attackOrigin: {fileID: 7091135295914702528}
-  damage: 22
+  damage: 24
   range: 1.6
-  radius: 0.65
-  knockbackImpulse: 9
+  radius: 0.7
+  knockbackImpulse: 10
 --- !u!114 &6962007671865741787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255,10 +257,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c78e1dbfcf2ba4385bee62044bbfe454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.ProjectileCaster
-  cooldown: 0.55
+  cooldown: 0.45
   projectilePrefab: {fileID: 2319156023187716121, guid: c118c7407c27f463d8005fb9fa962005, type: 3}
   spawnPoint: {fileID: 5042951366781094784}
-  projectileSpeed: 24
+  projectileSpeed: 26
+  projectileDamage: 24
+  projectileLifetime: 5
+  projectileKnockbackImpulse: 7
 --- !u!114 &2963711393637559314
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,9 +276,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c102438013ed34ff8be573fcc46f5943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.DashAbility
-  cooldown: 1.5
+  cooldown: 1.2
   directionSource: {fileID: 1077131931084453373}
-  distance: 5
+  distance: 6
 --- !u!114 &8227350747028928702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -286,11 +291,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78698d21edc6347989f6cd1c38111ecd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.RadialSmashAbility
-  cooldown: 4
+  cooldown: 1
   centerPoint: {fileID: 1077131931084453373}
-  radius: 4
-  damage: 32
-  knockbackImpulse: 14
+  radius: 4.5
+  damage: 38
+  knockbackImpulse: 18
 --- !u!114 &6884868966315588551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -307,6 +312,34 @@ MonoBehaviour:
   secondaryAttack: {fileID: 6962007671865741787}
   movementAbility: {fileID: 2963711393637559314}
   ultimateAbility: {fileID: 8227350747028928702}
+--- !u!114 &181651738862102650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2555118881757359306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c703c8a1a0764755b895b3699eee58b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroUltimateCharge
+  maximumCharge: 100
+  chargePerDamageDealt: 1
+  chargePerDamageTaken: 0.5
+--- !u!114 &4988786545295562923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2555118881757359306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b75ce7aed4eb64a669f6f0ea5b162037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroProfile
+  definition: {fileID: 11400000, guid: eeb408d0c9b2f48fd8bdde696cdd38d4, type: 2}
 --- !u!114 &9165589155883618390
 MonoBehaviour:
   m_ObjectHideFlags: 0

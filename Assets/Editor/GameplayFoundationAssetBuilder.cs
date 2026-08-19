@@ -2,6 +2,7 @@ using HeroVR.Abilities;
 using HeroVR.Arena;
 using HeroVR.Combat;
 using HeroVR.Gameplay;
+using HeroVR.Heroes;
 using HeroVR.Movement;
 using HeroVR.Prototype;
 using HeroVR.XR;
@@ -19,6 +20,8 @@ namespace HeroVR.Editor
     {
         private const string ProjectilePrefabPath =
             "Assets/Prefabs/Abilities/EnergyProjectile.prefab";
+        private const string HeroDefinitionPath =
+            "Assets/Heroes/KineticVanguard/KineticVanguard.asset";
         private const string PlayerPrefabPath =
             "Assets/Prefabs/Characters/DesktopPlayer.prefab";
         private const string XRPlayerPrefabPath =
@@ -64,22 +67,26 @@ namespace HeroVR.Editor
 
             try
             {
+                HeroDefinition heroDefinition = LoadOrCreateHeroDefinition();
                 Material projectileMaterial = LoadOrCreateMaterial(
                     "Assets/Materials/Gameplay/EnergyProjectile.mat",
-                    new Color(.15f, .75f, 1f));
+                    heroDefinition.SignatureColor);
                 Material enemyMaterial = LoadOrCreateMaterial(
                     "Assets/Materials/Gameplay/TrainingEnemy.mat",
                     new Color(.85f, .16f, .18f));
                 Material handMaterial = LoadOrCreateMaterial(
                     "Assets/Materials/Gameplay/XRHand.mat",
-                    new Color(.1f, .55f, 1f));
+                    heroDefinition.SignatureColor);
 
                 EnergyProjectile projectilePrefab =
                     BuildProjectilePrefab(projectileMaterial);
-                GameObject playerPrefab = BuildPlayerPrefab(projectilePrefab);
+                GameObject playerPrefab = BuildPlayerPrefab(
+                    projectilePrefab,
+                    heroDefinition);
                 GameObject xrPlayerPrefab = BuildXRPlayerPrefab(
                     projectilePrefab,
-                    handMaterial);
+                    handMaterial,
+                    heroDefinition);
                 GameObject enemyPrefab = BuildEnemyPrefab(enemyMaterial);
                 BuildMatchPrefab(
                     "GameplayMatchBootstrap",
@@ -136,7 +143,9 @@ namespace HeroVR.Editor
             return AssetDatabase.LoadAssetAtPath<EnergyProjectile>(ProjectilePrefabPath);
         }
 
-        private static GameObject BuildPlayerPrefab(EnergyProjectile projectilePrefab)
+        private static GameObject BuildPlayerPrefab(
+            EnergyProjectile projectilePrefab,
+            HeroDefinition heroDefinition)
         {
             GameObject root = new GameObject("DesktopPlayer");
 
@@ -156,6 +165,8 @@ namespace HeroVR.Editor
             DashAbility dash = root.AddComponent<DashAbility>();
             RadialSmashAbility smash = root.AddComponent<RadialSmashAbility>();
             HeroAbilityLoadout loadout = root.AddComponent<HeroAbilityLoadout>();
+            root.AddComponent<HeroUltimateCharge>();
+            HeroProfile heroProfile = root.AddComponent<HeroProfile>();
 
             GameObject cameraObject = new GameObject("HeroCamera");
             cameraObject.transform.SetParent(root.transform, false);
@@ -168,16 +179,16 @@ namespace HeroVR.Editor
             spawnObject.transform.SetParent(cameraObject.transform, false);
             spawnObject.transform.localPosition = Vector3.forward * 1.1f;
 
-            punch.SetCooldown(.35f);
             punch.SetAttackOrigin(cameraObject.transform);
-            projectile.SetCooldown(.55f);
-            projectile.Configure(projectilePrefab, spawnObject.transform, 24f);
-            dash.SetCooldown(1.5f);
+            projectile.Configure(
+                projectilePrefab,
+                spawnObject.transform,
+                heroDefinition.Projectile.speed);
             dash.SetDirectionSource(root.transform);
-            smash.SetCooldown(4f);
             smash.SetCenterPoint(root.transform);
             loadout.Configure(punch, projectile, dash, smash);
             motor.SetViewTransform(cameraObject.transform);
+            heroProfile.Configure(heroDefinition);
 
             DesktopHeroController controller =
                 root.AddComponent<DesktopHeroController>();
@@ -212,7 +223,8 @@ namespace HeroVR.Editor
 
         private static GameObject BuildXRPlayerPrefab(
             EnergyProjectile projectilePrefab,
-            Material handMaterial)
+            Material handMaterial,
+            HeroDefinition heroDefinition)
         {
             GameObject root = new GameObject("XRPlayer");
 
@@ -231,6 +243,8 @@ namespace HeroVR.Editor
             DashAbility dash = root.AddComponent<DashAbility>();
             RadialSmashAbility smash = root.AddComponent<RadialSmashAbility>();
             HeroAbilityLoadout loadout = root.AddComponent<HeroAbilityLoadout>();
+            root.AddComponent<HeroUltimateCharge>();
+            HeroProfile heroProfile = root.AddComponent<HeroProfile>();
 
             XROrigin xrOrigin = root.AddComponent<XROrigin>();
             XRCharacterMotor motor = root.AddComponent<XRCharacterMotor>();
@@ -285,13 +299,12 @@ namespace HeroVR.Editor
             xrOrigin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
             xrOrigin.CameraYOffset = 0f;
 
-            punch.SetCooldown(.35f);
             punch.SetAttackOrigin(rightController);
-            projectile.SetCooldown(.55f);
-            projectile.Configure(projectilePrefab, spawnObject.transform, 24f);
-            dash.SetCooldown(1.5f);
+            projectile.Configure(
+                projectilePrefab,
+                spawnObject.transform,
+                heroDefinition.Projectile.speed);
             dash.SetDirectionSource(cameraObject.transform);
-            smash.SetCooldown(4f);
             smash.SetCenterPoint(root.transform);
             loadout.Configure(punch, projectile, dash, smash);
             motor.Configure(cameraObject.transform);
@@ -328,6 +341,13 @@ namespace HeroVR.Editor
                     InputActionType.Button,
                     "Button",
                     "<XRController>{RightHand}/{primaryButton}"));
+
+            CreateWristStatusDisplay(
+                root,
+                leftController,
+                cameraObject.transform,
+                heroDefinition.SignatureColor);
+            heroProfile.Configure(heroDefinition);
 
             PrefabUtility.SaveAsPrefabAsset(root, XRPlayerPrefabPath);
             Object.DestroyImmediate(root);
@@ -378,6 +398,28 @@ namespace HeroVR.Editor
                 hand.AddComponent<TrackedHandPhysicsFollower>();
             follower.Configure(trackingTarget);
             hand.AddComponent<PunchHitbox>();
+        }
+
+        private static void CreateWristStatusDisplay(
+            GameObject playerRoot,
+            Transform leftController,
+            Transform viewer,
+            Color color)
+        {
+            GameObject statusObject = new GameObject("WristStatus");
+            statusObject.transform.SetParent(leftController, false);
+            statusObject.transform.localPosition = new Vector3(0f, .11f, .08f);
+
+            TextMesh text = statusObject.AddComponent<TextMesh>();
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.fontSize = 40;
+            text.characterSize = .012f;
+            text.color = color;
+
+            HeroStatusDisplay display =
+                playerRoot.AddComponent<HeroStatusDisplay>();
+            display.Configure(text, viewer);
         }
 
         private static void ConfigureTrackedPose(
@@ -561,6 +603,24 @@ namespace HeroVR.Editor
             return material;
         }
 
+        private static HeroDefinition LoadOrCreateHeroDefinition()
+        {
+            HeroDefinition definition =
+                AssetDatabase.LoadAssetAtPath<HeroDefinition>(HeroDefinitionPath);
+            if (definition != null)
+                return definition;
+
+            definition = ScriptableObject.CreateInstance<HeroDefinition>();
+            definition.name = "Kinetic Vanguard";
+            definition.ConfigureIdentity(
+                "kinetic-vanguard",
+                "Kinetic Vanguard",
+                "A close-range kinetic fighter who converts combat momentum into a devastating nova.",
+                new Color(.1f, .65f, 1f));
+            AssetDatabase.CreateAsset(definition, HeroDefinitionPath);
+            return definition;
+        }
+
         private static void EnsureFolders()
         {
             EnsureFolder("Assets/Prefabs");
@@ -569,6 +629,8 @@ namespace HeroVR.Editor
             EnsureFolder("Assets/Prefabs/Gameplay");
             EnsureFolder("Assets/Materials");
             EnsureFolder("Assets/Materials/Gameplay");
+            EnsureFolder("Assets/Heroes");
+            EnsureFolder("Assets/Heroes/KineticVanguard");
             EnsureFolder("Assets/Scenes");
             EnsureFolder("Assets/Scenes/Gameplay");
         }

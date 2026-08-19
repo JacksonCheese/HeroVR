@@ -18,9 +18,12 @@ GameObject:
   - component: {fileID: 3733640765710889284}
   - component: {fileID: 1078907461649005969}
   - component: {fileID: 761028290752569462}
+  - component: {fileID: 3549564081923147159}
+  - component: {fileID: 2357210320820356419}
   - component: {fileID: 4250567645731771}
   - component: {fileID: 1251726359473787888}
   - component: {fileID: 924545561200243880}
+  - component: {fileID: 2029839800981828068}
   m_Layer: 0
   m_Name: XRPlayer
   m_TagString: Untagged
@@ -83,7 +86,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7fe1a6b115e341c486a53526abfcb45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.Damageable
-  maxHealth: 100
+  maxHealth: 125
   onHealthChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -130,12 +133,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fdb369afd7804ae38810bd7bacada22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.MeleePunchAbility
-  cooldown: 0.35
+  cooldown: 0.32
   attackOrigin: {fileID: 5991382797860548578}
-  damage: 22
+  damage: 24
   range: 1.6
-  radius: 0.65
-  knockbackImpulse: 9
+  radius: 0.7
+  knockbackImpulse: 10
 --- !u!114 &5128979976747395569
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,10 +151,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c78e1dbfcf2ba4385bee62044bbfe454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.ProjectileCaster
-  cooldown: 0.55
+  cooldown: 0.45
   projectilePrefab: {fileID: 2319156023187716121, guid: c118c7407c27f463d8005fb9fa962005, type: 3}
   spawnPoint: {fileID: 1458822630277428091}
-  projectileSpeed: 24
+  projectileSpeed: 26
+  projectileDamage: 24
+  projectileLifetime: 5
+  projectileKnockbackImpulse: 7
 --- !u!114 &3733640765710889284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,9 +170,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c102438013ed34ff8be573fcc46f5943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.DashAbility
-  cooldown: 1.5
+  cooldown: 1.2
   directionSource: {fileID: 1587423102479437067}
-  distance: 5
+  distance: 6
 --- !u!114 &1078907461649005969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -179,11 +185,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78698d21edc6347989f6cd1c38111ecd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.RadialSmashAbility
-  cooldown: 4
+  cooldown: 1
   centerPoint: {fileID: 3216069940816557541}
-  radius: 4
-  damage: 32
-  knockbackImpulse: 14
+  radius: 4.5
+  damage: 38
+  knockbackImpulse: 18
 --- !u!114 &761028290752569462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,6 +206,34 @@ MonoBehaviour:
   secondaryAttack: {fileID: 5128979976747395569}
   movementAbility: {fileID: 3733640765710889284}
   ultimateAbility: {fileID: 1078907461649005969}
+--- !u!114 &3549564081923147159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410554141780231977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c703c8a1a0764755b895b3699eee58b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroUltimateCharge
+  maximumCharge: 100
+  chargePerDamageDealt: 1
+  chargePerDamageTaken: 0.5
+--- !u!114 &2357210320820356419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410554141780231977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b75ce7aed4eb64a669f6f0ea5b162037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroProfile
+  definition: {fileID: 11400000, guid: eeb408d0c9b2f48fd8bdde696cdd38d4, type: 2}
 --- !u!114 &4250567645731771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,12 +288,12 @@ MonoBehaviour:
       m_Name: Move
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: e0063524-bd78-4558-9d21-7453c31d4150
+      m_Id: 09b5e391-f1d0-49e0-a706-0e792a7832e5
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 5f6de626-c6a9-467e-8418-013e2da4b8aa
+        m_Id: 9c2ff94b-8bc1-4ca9-b6d0-607e132d9979
         m_Path: <XRController>{LeftHand}/{primary2DAxis}
         m_Interactions: 
         m_Processors: 
@@ -275,12 +309,12 @@ MonoBehaviour:
       m_Name: Turn
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 3c96a713-78db-4c8e-9374-07dc146a9f47
+      m_Id: 752d3a55-e46b-407e-8f1d-27a60aad8713
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 65a1c3bf-bd25-4d0e-b50f-05a1bfcb2dd9
+        m_Id: e2c411ba-9467-487d-a8f9-f9bc2094ba20
         m_Path: <XRController>{RightHand}/{primary2DAxis}
         m_Interactions: 
         m_Processors: 
@@ -296,12 +330,12 @@ MonoBehaviour:
       m_Name: Jump
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: 6181a311-a1ae-4103-8f9f-64651d8f5ff3
+      m_Id: fb7f0ef8-7d32-45d5-b476-6bb382114080
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: b5a83c9e-74c4-4350-bc65-ccee53b081fe
+        m_Id: 087ef294-ab7d-45b5-906b-06b2c36b33b6
         m_Path: <XRController>{LeftHand}/{primaryButton}
         m_Interactions: 
         m_Processors: 
@@ -317,7 +351,7 @@ MonoBehaviour:
       m_Name: 
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: f20d09c3-f5f9-41a1-9ef3-7d37c6092034
+      m_Id: e9455227-8f4d-48aa-b70d-1c090fbf3c59
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -330,12 +364,12 @@ MonoBehaviour:
       m_Name: Energy Projectile
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: 25cb0e27-e69d-4cc0-9bc9-35d1aca49b89
+      m_Id: 5b6e378b-b617-429c-ae8f-90a0992f0494
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 1f3d95a2-5d2d-4259-a7a1-8ef009413877
+        m_Id: e66cbe0d-691c-4db4-8fab-553a5b636e84
         m_Path: <XRController>{RightHand}/{triggerButton}
         m_Interactions: 
         m_Processors: 
@@ -351,12 +385,12 @@ MonoBehaviour:
       m_Name: Dash
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: e6c1abd1-d970-4ac6-bf0e-6047c19ae9d3
+      m_Id: c84d2235-825c-4407-aea5-6fb72d5825b8
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 9da1195d-cc52-4989-9707-c871efeef1db
+        m_Id: e12cafe7-46f2-4128-8154-038976d406be
         m_Path: <XRController>{LeftHand}/{primary2DAxisClick}
         m_Interactions: 
         m_Processors: 
@@ -372,12 +406,12 @@ MonoBehaviour:
       m_Name: Super Smash
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: a8ae96cb-b9e2-4355-9800-40bee6969f76
+      m_Id: 15b8b563-6c7e-43db-b30d-28fe8c6e9c5e
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: af650c20-c1ad-43bd-9e72-ac3e16eb46ac
+        m_Id: f1840297-37cc-49be-86ad-656d50d0ac19
         m_Path: <XRController>{RightHand}/{primaryButton}
         m_Interactions: 
         m_Processors: 
@@ -389,6 +423,20 @@ MonoBehaviour:
     m_Reference: {fileID: 0}
   turnActivationThreshold: 0.75
   turnResetThreshold: 0.25
+--- !u!114 &2029839800981828068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410554141780231977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 405fbba1b40f2408ba1301621ae9be26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroStatusDisplay
+  statusText: {fileID: 3019085972669555513}
+  viewer: {fileID: 1587423102479437067}
 --- !u!1 &574029277345312522
 GameObject:
   m_ObjectHideFlags: 0
@@ -503,12 +551,12 @@ MonoBehaviour:
       m_Name: Head Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: 79f59deb-3556-4edd-a205-8aaf5d01d636
+      m_Id: 517cb34c-6630-4a33-84a5-c2e9757ab83c
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 44fb4226-97ea-4747-ad2a-d3dfa04ba227
+        m_Id: cd0f179e-70a8-4f52-b089-f338ee172a6a
         m_Path: <XRHMD>/centerEyePosition
         m_Interactions: 
         m_Processors: 
@@ -524,12 +572,12 @@ MonoBehaviour:
       m_Name: Head Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: fb8384e8-98fc-49c6-9a3c-4820bfb37812
+      m_Id: 7f8e635e-2af5-47d4-885d-746e962e097f
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: daba8dc1-15cd-4f9f-bddf-9630cf4e2e26
+        m_Id: e03bb06d-b9fd-42c6-a710-ca1dd9a8a6f8
         m_Path: <XRHMD>/centerEyeRotation
         m_Interactions: 
         m_Processors: 
@@ -545,12 +593,12 @@ MonoBehaviour:
       m_Name: Head Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: eb8b9e2b-43d7-4029-a89e-893502777ba7
+      m_Id: 438d3455-03c3-414e-b04d-b1e904e4086b
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: ee3f6ef0-f220-4564-a9b0-9c5e17c5e91b
+        m_Id: 84eefb9d-2c8d-474b-9eb2-cfe9c30af832
         m_Path: <XRHMD>/trackingState
         m_Interactions: 
         m_Processors: 
@@ -564,7 +612,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 86feb5a2-27b2-4a72-b3cd-507adb2f3466
+    m_Id: 6dc427fd-2351-416b-b767-63923bb66a55
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -574,7 +622,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 791cde33-5861-4b01-af07-f087128cc1ee
+    m_Id: e49054fa-f96c-4d18-b6f4-804f959436a0
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -748,11 +796,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2328df08ef0b14a0c82bc308c678b401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.PunchHitbox
-  minimumHitSpeed: 1.5
-  damagePerMeterPerSecond: 7
-  maxDamage: 35
-  knockbackMultiplier: 1.8
-  maxKnockbackImpulse: 12
+  minimumHitSpeed: 1.4
+  damagePerMeterPerSecond: 8
+  maxDamage: 32
+  knockbackMultiplier: 2
+  maxKnockbackImpulse: 14
 --- !u!1 &2516721701774036426
 GameObject:
   m_ObjectHideFlags: 0
@@ -807,12 +855,12 @@ MonoBehaviour:
       m_Name: RightController Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: 8ac1aee2-f2a7-44be-b891-30b60b9405a4
+      m_Id: e31b70e4-44cd-4140-8fca-d48400fcc19c
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: e02af853-e94f-4c33-842b-0dbe76ed8fab
+        m_Id: 15d0b24e-5fa3-4bbc-a5cb-e401cdc93674
         m_Path: <XRController>{RightHand}/devicePosition
         m_Interactions: 
         m_Processors: 
@@ -828,12 +876,12 @@ MonoBehaviour:
       m_Name: RightController Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: 4599e946-277a-4568-98be-eeddeb5fb630
+      m_Id: 028a2ec6-fd83-4b7e-a98b-44c0a3e55d42
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 4109454b-94d0-4d72-b252-d0c148ae2071
+        m_Id: bed85bae-cede-49a8-821e-c1bfda8f017f
         m_Path: <XRController>{RightHand}/deviceRotation
         m_Interactions: 
         m_Processors: 
@@ -849,12 +897,12 @@ MonoBehaviour:
       m_Name: RightController Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: 35087875-e5b8-484c-b704-48331482f988
+      m_Id: 76921e69-7e92-4eef-8b1b-92f5ac97d871
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: dfb1fdba-fd18-49db-95cb-de926af643f4
+        m_Id: 8d12cac2-1b14-4258-9eaf-97fceedd80a0
         m_Path: <XRController>{RightHand}/trackingState
         m_Interactions: 
         m_Processors: 
@@ -868,7 +916,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: f95d5db2-b657-4c73-abcf-473e7fdcea36
+    m_Id: ca1b8bff-de0b-4cf6-b8ed-72b799f9e856
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -878,7 +926,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: db135803-6ada-4269-ab93-4e504778b633
+    m_Id: 346cb4cf-0bec-4cc7-b233-da453b3c05c5
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -944,7 +992,8 @@ Transform:
   m_LocalPosition: {x: -0.2, y: 1.3, z: 0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 269072947911169641}
   m_Father: {fileID: 4807957823974442145}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3398111636322768760
@@ -968,12 +1017,12 @@ MonoBehaviour:
       m_Name: LeftController Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: b83259ae-3d46-49de-8cc6-1a1da4777e6b
+      m_Id: 69b6a5b8-cb4d-4c48-9b57-f7fc0a5b12bd
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 5e3e7bd8-638a-4e23-b18e-2f7a0fda1c7a
+        m_Id: 5a6ebd47-46f6-48cb-b9a9-e0b7ba57087e
         m_Path: <XRController>{LeftHand}/devicePosition
         m_Interactions: 
         m_Processors: 
@@ -989,12 +1038,12 @@ MonoBehaviour:
       m_Name: LeftController Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: 10516a5e-104c-41e9-a5ae-5e92314a4d8b
+      m_Id: 8dc4bdd6-b62d-4163-b7b1-f849219597af
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: ea58dd45-251e-4724-b58b-67f792ec26cc
+        m_Id: 21e82938-1de2-426d-ab2a-8fad5bbc7591
         m_Path: <XRController>{LeftHand}/deviceRotation
         m_Interactions: 
         m_Processors: 
@@ -1010,12 +1059,12 @@ MonoBehaviour:
       m_Name: LeftController Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: 560ed775-f375-4971-933e-d58548c1fb00
+      m_Id: 63d8b435-9ddf-4ee0-9b8f-6c7894c033a2
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: bf758699-4d50-4c68-88cf-d9c143df0512
+        m_Id: 5a68a409-e00e-4a5a-853d-7345f8b31bee
         m_Path: <XRController>{LeftHand}/trackingState
         m_Interactions: 
         m_Processors: 
@@ -1029,7 +1078,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 87665f69-e174-4a4e-84d3-db0dd2360aab
+    m_Id: ee008236-8535-4229-aaea-1a2a95fbd3e4
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -1039,7 +1088,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: c4d94b52-dd64-48a9-9f59-82d7eab0a00b
+    m_Id: 31938dc5-1ae5-45d9-84e6-ea958c382a7b
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -1213,11 +1262,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2328df08ef0b14a0c82bc308c678b401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.PunchHitbox
-  minimumHitSpeed: 1.5
-  damagePerMeterPerSecond: 7
-  maxDamage: 35
-  knockbackMultiplier: 1.8
-  maxKnockbackImpulse: 12
+  minimumHitSpeed: 1.4
+  damagePerMeterPerSecond: 8
+  maxDamage: 32
+  knockbackMultiplier: 2
+  maxKnockbackImpulse: 14
 --- !u!1 &8287948758104038136
 GameObject:
   m_ObjectHideFlags: 0
@@ -1252,3 +1301,107 @@ Transform:
   - {fileID: 5991382797860548578}
   m_Father: {fileID: 3216069940816557541}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8336136220343234386
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 269072947911169641}
+  - component: {fileID: 3096012686064970961}
+  - component: {fileID: 3019085972669555513}
+  m_Layer: 0
+  m_Name: WristStatus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &269072947911169641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336136220343234386}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.11, z: 0.08}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4452982280077260055}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &3096012686064970961
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336136220343234386}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10100, guid: 0000000000000000e000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!102 &3019085972669555513
+TextMesh:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336136220343234386}
+  m_Text: 
+  m_OffsetZ: 0
+  m_CharacterSize: 0.012
+  m_LineSpacing: 1
+  m_Anchor: 4
+  m_Alignment: 1
+  m_TabSize: 4
+  m_FontSize: 40
+  m_FontStyle: 0
+  m_RichText: 1
+  m_Font: {fileID: 0}
+  m_Color:
+    serializedVersion: 2
+    rgba: 4294944282

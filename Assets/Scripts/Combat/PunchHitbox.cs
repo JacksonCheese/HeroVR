@@ -64,5 +64,19 @@ namespace HeroVR.Combat
                 collision.rigidbody.AddForce(direction * impulse, ForceMode.Impulse);
             }
         }
+
+        public void Configure(
+            float minimumSpeed,
+            float damagePerSpeed,
+            float maximumDamage,
+            float impulseMultiplier,
+            float maximumImpulse)
+        {
+            minimumHitSpeed = Mathf.Max(0f, minimumSpeed);
+            damagePerMeterPerSecond = Mathf.Max(0f, damagePerSpeed);
+            maxDamage = Mathf.Max(0f, maximumDamage);
+            knockbackMultiplier = Mathf.Max(0f, impulseMultiplier);
+            maxKnockbackImpulse = Mathf.Max(0f, maximumImpulse);
+        }
     }
 }

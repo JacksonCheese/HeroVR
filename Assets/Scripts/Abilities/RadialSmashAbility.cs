@@ -22,6 +22,16 @@ namespace HeroVR.Abilities
             centerPoint = center;
         }
 
+        public void ConfigureCombat(
+            float attackRadius,
+            float damageAmount,
+            float impulse)
+        {
+            radius = Mathf.Max(0f, attackRadius);
+            damage = Mathf.Max(0f, damageAmount);
+            knockbackImpulse = Mathf.Max(0f, impulse);
+        }
+
         protected override bool Activate()
         {
             Vector3 center = centerPoint != null

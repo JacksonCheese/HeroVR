@@ -27,6 +27,11 @@ namespace HeroVR.Abilities
             requestedDirection = worldDirection;
         }
 
+        public void SetDistance(float dashDistance)
+        {
+            distance = Mathf.Max(0f, dashDistance);
+        }
+
         protected override bool CanActivate()
         {
             return characterController != null && characterController.enabled;

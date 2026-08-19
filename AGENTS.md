@@ -142,9 +142,20 @@ The current custom code is organized under `Assets/Scripts`:
 - `XR/XRHeroInputAdapter.cs` maps Quest/OpenXR controls into the shared locomotion and ability APIs.
 - `XR/TrackedHandPhysicsFollower.cs` drives kinematic punch proxies and supplies tracked velocity to `PunchHitbox`.
 - `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
+- `Heroes/HeroDefinition.cs` is the data source for hero identity, combat tuning, ability names, and ultimate-resource rules.
+- `Heroes/HeroProfile.cs` applies one definition to the existing reusable ability and combat components.
+- `Heroes/HeroUltimateCharge.cs` implements the optional resource gate used by charged ultimate abilities.
+- `Heroes/HeroStatusDisplay.cs` is the lightweight XR status presenter; it does not own gameplay state.
 
 The gameplay-owned validation scenes are `Assets/Scenes/Gameplay/GameplaySandbox.unity`
 and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. They are not production arenas.
+
+The first configured hero is **Kinetic Vanguard**, defined by
+`Assets/Heroes/KineticVanguard/KineticVanguard.asset`. Both desktop and XR player
+prefabs reference that definition. Kinetic Vanguard gains Momentum from actual
+damage dealt and damage taken, then consumes a full meter to activate Kinetic Nova.
+Future heroes should use their own definition and composed loadout rather than fork
+`Damageable`, the input adapters, or the locomotion components.
 
 Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:
 
@@ -252,6 +263,11 @@ Add focused tests as stable seams emerge. High-value early tests include:
 - attack rejection while dead
 
 For Quest changes, a successful Editor test is not sufficient. Clearly identify when an Android build, on-device check, controller check, tracking check, or performance capture remains outstanding.
+
+Quest 2 on-device validation for the initial XR foundation was explicitly deferred by
+the project owner. Continue development without treating it as a milestone blocker,
+but keep the lack of device validation visible and fix regressions retroactively when
+hardware testing becomes available.
 
 ## Working Style for Codex
 
