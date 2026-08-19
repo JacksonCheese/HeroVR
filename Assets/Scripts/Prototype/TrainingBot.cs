@@ -4,7 +4,7 @@ using HeroVR.Combat;
 namespace HeroVR.Prototype
 {
     [RequireComponent(typeof(Rigidbody), typeof(Damageable), typeof(RespawnOnDeath))]
-    public class TrainingBot : MonoBehaviour
+    public class TrainingBot : MonoBehaviour, IOpponentReceiver
     {
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
@@ -22,13 +22,14 @@ namespace HeroVR.Prototype
 
         private Rigidbody rb;
         private Damageable health;
-        private DesktopHeroController target;
+        private Damageable target;
         private Renderer botRenderer;
         private Color normalColor;
         private float nextAttackTime;
         private float attackHitTime = -1f;
 
         public Damageable Health => health;
+        public Damageable Target => target;
         public bool IsAttackWindingUp => attackHitTime >= 0f;
 
         private void Awake()
@@ -44,7 +45,15 @@ namespace HeroVR.Prototype
             rb.linearDamping = 4f;
         }
 
-        public void SetTarget(DesktopHeroController player) => target = player;
+        public void SetTarget(Damageable combatTarget)
+        {
+            target = combatTarget;
+        }
+
+        public void SetOpponent(Damageable opponent)
+        {
+            SetTarget(opponent);
+        }
 
         private void FixedUpdate()
         {
@@ -55,7 +64,7 @@ namespace HeroVR.Prototype
                 return;
             }
 
-            if (target == null || target.Health.IsDead)
+            if (target == null || target.IsDead)
             {
                 CancelPendingAttack();
                 return;
@@ -106,7 +115,7 @@ namespace HeroVR.Prototype
             nextAttackTime = Time.time + attackCooldown;
             SetTelegraph(false);
 
-            if (target == null || target.Health.IsDead)
+            if (target == null || target.IsDead)
                 return;
 
             Vector3 to = target.transform.position - transform.position;
@@ -116,7 +125,7 @@ namespace HeroVR.Prototype
                 !HasLineOfSight())
                 return;
 
-            target.Health.TakeDamage(new DamageInfo(
+            target.TakeDamage(new DamageInfo(
                 attackDamage,
                 gameObject,
                 target.transform.position + Vector3.up * .9f,

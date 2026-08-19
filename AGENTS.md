@@ -20,13 +20,46 @@ This is a private game, not currently a public live-service product. Favor a rel
 ## Current Technology
 
 - Unity 6
-- Universal Render Pipeline is the intended render pipeline.
+- The repository currently uses Unity's built-in render pipeline.
+- Universal Render Pipeline remains a possible later migration, but do not migrate or change rendering settings without explicit coordination.
 - OpenXR
 - XR Interaction Toolkit
 - Unity Input System
 - Meta Quest 2 is the performance and interaction baseline.
 
 Do not introduce a second input, XR, rendering, physics, or networking framework without explaining the need and receiving approval.
+
+## Two-Developer Ownership
+
+HeroVR development is split between a gameplay developer and an environment developer working on separate Git branches. Keep their asset ownership boundaries explicit so the branches can merge with minimal Unity scene and prefab conflicts.
+
+The gameplay developer owns:
+
+- gameplay scripts and gameplay tests
+- player, character, ability, enemy, match, and other gameplay prefabs
+- generic arena/gameplay integration components such as spawn-point metadata
+- gameplay-only sandbox scenes
+- future XR player, hand, and gameplay prefabs
+
+The environment developer owns:
+
+- production arena scenes and arena prefabs
+- environment geometry, buildings, platforms, and props
+- environment materials, lighting, and environmental art
+- environmental collision layout and arena-specific placement
+
+Production arenas should use small gameplay-owned integration components rather than contain arena-specific implementations of player, combat, ability, AI, or match logic. Gameplay must discover these components without depending on scene names, specifically named GameObjects, or a particular hero controller.
+
+Environment work may place and configure gameplay-owned spawn-point and integration components. Changes to the behavior or serialized contract of those components remain gameplay-owned and should be coordinated before environment scenes depend on them.
+
+The following are shared, conflict-prone areas and require coordination before modification:
+
+- `ProjectSettings`, including tags, layers, build scenes, graphics, quality, Android, and XR settings
+- `Packages/manifest.json` and `Packages/packages-lock.json`
+- production arena scenes and shared prefabs
+- asset moves or renames that change Unity `.meta` paths
+
+Do not require the environment developer to edit this guide on their branch merely to consume the generic gameplay contract.
 
 ## Development Roadmap
 
