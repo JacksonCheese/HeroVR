@@ -50,6 +50,24 @@ namespace HeroVR.Tests
         }
 
         [UnityTest]
+        public IEnumerator Damageable_ReportsActualAppliedDamageToInstigator()
+        {
+            GameObject attacker = new GameObject("DamageDealer");
+            DamageDealtProbe probe = attacker.AddComponent<DamageDealtProbe>();
+            GameObject targetObject = new GameObject("DamageTarget");
+            Damageable target = targetObject.AddComponent<Damageable>();
+
+            target.TakeDamage(new DamageInfo(150f, attacker));
+
+            Assert.That(probe.LastTarget, Is.SameAs(target));
+            Assert.That(probe.LastAppliedDamage, Is.EqualTo(100f));
+
+            Object.Destroy(attacker);
+            Object.Destroy(targetObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator AreaDamage_DamagesMultiColliderTargetOnlyOnceAndSkipsInstigator()
         {
             GameObject instigator = new GameObject("Instigator");

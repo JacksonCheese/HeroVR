@@ -4,7 +4,7 @@ using HeroVR.Combat;
 namespace HeroVR.Prototype
 {
     [RequireComponent(typeof(Rigidbody), typeof(Damageable), typeof(RespawnOnDeath))]
-    public class TrainingBot : MonoBehaviour
+    public class TrainingBot : MonoBehaviour, IOpponentReceiver
     {
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
@@ -14,6 +14,7 @@ namespace HeroVR.Prototype
         [Header("Attack")]
         [SerializeField] private float attackRange = 1.75f;
         [SerializeField] private float attackDamage = 12f;
+        [SerializeField] private float attackKnockbackImpulse = 7f;
         [SerializeField] private float attackWindup = .3f;
         [SerializeField] private float attackCooldown = .9f;
         [SerializeField, Range(1f, 180f)] private float attackFacingAngle = 65f;
@@ -22,13 +23,14 @@ namespace HeroVR.Prototype
 
         private Rigidbody rb;
         private Damageable health;
-        private DesktopHeroController target;
+        private Damageable target;
         private Renderer botRenderer;
         private Color normalColor;
         private float nextAttackTime;
         private float attackHitTime = -1f;
 
         public Damageable Health => health;
+        public Damageable Target => target;
         public bool IsAttackWindingUp => attackHitTime >= 0f;
 
         private void Awake()
@@ -44,7 +46,15 @@ namespace HeroVR.Prototype
             rb.linearDamping = 4f;
         }
 
-        public void SetTarget(DesktopHeroController player) => target = player;
+        public void SetTarget(Damageable combatTarget)
+        {
+            target = combatTarget;
+        }
+
+        public void SetOpponent(Damageable opponent)
+        {
+            SetTarget(opponent);
+        }
 
         private void FixedUpdate()
         {
@@ -55,7 +65,7 @@ namespace HeroVR.Prototype
                 return;
             }
 
-            if (target == null || target.Health.IsDead)
+            if (target == null || target.IsDead)
             {
                 CancelPendingAttack();
                 return;
@@ -106,7 +116,7 @@ namespace HeroVR.Prototype
             nextAttackTime = Time.time + attackCooldown;
             SetTelegraph(false);
 
-            if (target == null || target.Health.IsDead)
+            if (target == null || target.IsDead)
                 return;
 
             Vector3 to = target.transform.position - transform.position;
@@ -116,11 +126,14 @@ namespace HeroVR.Prototype
                 !HasLineOfSight())
                 return;
 
-            target.Health.TakeDamage(new DamageInfo(
+            Vector3 knockbackDirection =
+                (horizontalToTarget.normalized + Vector3.up * .08f).normalized;
+            target.TakeDamage(new DamageInfo(
                 attackDamage,
                 gameObject,
                 target.transform.position + Vector3.up * .9f,
-                horizontalToTarget));
+                knockbackDirection,
+                attackKnockbackImpulse));
         }
 
         private bool IsFacingTarget(Vector3 direction)
@@ -177,6 +190,7 @@ namespace HeroVR.Prototype
             turnSpeed = Mathf.Max(0f, turnSpeed);
             attackRange = Mathf.Max(.1f, attackRange);
             attackDamage = Mathf.Max(0f, attackDamage);
+            attackKnockbackImpulse = Mathf.Max(0f, attackKnockbackImpulse);
             attackWindup = Mathf.Max(0f, attackWindup);
             attackCooldown = Mathf.Max(0f, attackCooldown);
         }

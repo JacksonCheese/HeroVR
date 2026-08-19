@@ -1,183 +1,255 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using HeroVR.Combat;
 using HeroVR.Abilities;
+using HeroVR.Combat;
+using HeroVR.Movement;
+using HeroVR.Heroes;
 
 namespace HeroVR.Prototype
 {
+    [DefaultExecutionOrder(-100)]
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController), typeof(Damageable), typeof(RespawnOnDeath))]
-    public class DesktopHeroController : MonoBehaviour
+    [RequireComponent(
+        typeof(DesktopCharacterMotor),
+        typeof(HeroAbilityLoadout),
+        typeof(CharacterKnockbackReceiver))]
+    public sealed class DesktopHeroController : MonoBehaviour, IOpponentReceiver
     {
-        public float moveSpeed = 7f, jumpHeight = 2.6f, gravity = -22f;
-        public float punchDamage = 22f, punchRange = 1.6f, punchRadius = .65f, punchForce = 9f;
-        public float blastSpeed = 24f, dashDistance = 5f, smashRadius = 4f, smashDamage = 32f, smashForce = 14f;
+        [SerializeField] private Camera viewCamera;
+        [SerializeField] private Transform projectileSpawnPoint;
+        [SerializeField] private DesktopCharacterMotor motor;
+        [SerializeField] private HeroAbilityLoadout abilityLoadout;
 
-        CharacterController controller;
-        Damageable health;
-        Camera cam;
-        TrainingBot opponent;
-        Vector3 verticalVelocity;
-        float pitch, nextPunch, nextBlast, nextDash, nextSmash;
-        readonly Collider[] smashHitBuffer = new Collider[64];
-        readonly HashSet<Damageable> smashDamageTargets = new HashSet<Damageable>();
-        readonly HashSet<Rigidbody> smashPhysicsTargets = new HashSet<Rigidbody>();
+        private Damageable health;
+        private Damageable opponentHealth;
+        private HeroProfile heroProfile;
+        private HeroUltimateCharge ultimateCharge;
 
         public Damageable Health => health;
+        public HeroAbilityLoadout AbilityLoadout => abilityLoadout;
 
-        void Awake()
+        private void Awake()
         {
-            controller = GetComponent<CharacterController>();
             health = GetComponent<Damageable>();
+            heroProfile = GetComponent<HeroProfile>();
+            ultimateCharge = GetComponent<HeroUltimateCharge>();
+            motor = motor != null ? motor : GetComponent<DesktopCharacterMotor>();
+            abilityLoadout = abilityLoadout != null
+                ? abilityLoadout
+                : GetComponent<HeroAbilityLoadout>();
 
-            GameObject c = new GameObject("HeroCamera");
-            c.transform.SetParent(transform);
-            c.transform.localPosition = new Vector3(0, 1.55f, 0);
-            cam = c.AddComponent<Camera>();
-            c.AddComponent<AudioListener>();
-            c.tag = "MainCamera";
+            EnsureDesktopRig();
+            EnsureAbilityComponents();
         }
 
-        void Start() => LockCursor();
-        public void SetOpponent(TrainingBot bot) => opponent = bot;
-
-        void Update()
+        private void Start()
         {
-            if (Keyboard.current == null || Mouse.current == null) return;
+            LockCursor();
+        }
+
+        public void ConfigureDesktopRig(
+            Camera camera,
+            Transform projectileSpawn,
+            DesktopCharacterMotor desktopMotor,
+            HeroAbilityLoadout loadout)
+        {
+            viewCamera = camera;
+            projectileSpawnPoint = projectileSpawn;
+            motor = desktopMotor;
+            abilityLoadout = loadout;
+        }
+
+        public void SetOpponent(Damageable opponent)
+        {
+            opponentHealth = opponent;
+        }
+
+        public void SetProjectilePrefab(EnergyProjectile projectilePrefab)
+        {
+            if (abilityLoadout != null &&
+                abilityLoadout.SecondaryAttack is ProjectileCaster projectileCaster)
+            {
+                projectileCaster.SetProjectilePrefab(projectilePrefab);
+            }
+        }
+
+        private void Update()
+        {
+            if (Keyboard.current == null || Mouse.current == null)
+                return;
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
+                motor.SetMoveInput(Vector2.zero);
                 return;
             }
 
             if (Cursor.lockState != CursorLockMode.Locked)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame) LockCursor();
+                motor.SetMoveInput(Vector2.zero);
+                if (Mouse.current.leftButton.wasPressedThisFrame)
+                    LockCursor();
+
                 return;
             }
 
             if (health.IsDead)
             {
-                verticalVelocity = Vector3.zero;
+                motor.SetMoveInput(Vector2.zero);
                 return;
             }
 
-            Look();
-            Move();
+            motor.AddLookDelta(Mouse.current.delta.ReadValue());
+            motor.SetMoveInput(ReadMoveInput());
 
-            if (Mouse.current.leftButton.wasPressedThisFrame && Time.time >= nextPunch) Punch();
-            if (Mouse.current.rightButton.wasPressedThisFrame && Time.time >= nextBlast) Blast();
-            if (Keyboard.current.leftShiftKey.wasPressedThisFrame && Time.time >= nextDash) Dash();
-            if (Keyboard.current.eKey.wasPressedThisFrame && Time.time >= nextSmash) Smash();
+            if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                motor.RequestJump();
+
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                abilityLoadout.TryActivatePrimary();
+
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+                abilityLoadout.TryActivateSecondary();
+
+            if (Keyboard.current.leftShiftKey.wasPressedThisFrame)
+            {
+                abilityLoadout.TryActivateMovementAbility(
+                    motor.DesiredWorldMoveDirection);
+            }
+
+            if (Keyboard.current.eKey.wasPressedThisFrame)
+                abilityLoadout.TryActivateUltimate();
         }
 
-        void LockCursor()
+        private static Vector2 ReadMoveInput()
+        {
+            Vector2 input = Vector2.zero;
+            if (Keyboard.current.wKey.isPressed)
+                input.y++;
+            if (Keyboard.current.sKey.isPressed)
+                input.y--;
+            if (Keyboard.current.dKey.isPressed)
+                input.x++;
+            if (Keyboard.current.aKey.isPressed)
+                input.x--;
+
+            return Vector2.ClampMagnitude(input, 1f);
+        }
+
+        private void EnsureDesktopRig()
+        {
+            if (viewCamera == null)
+                viewCamera = GetComponentInChildren<Camera>(true);
+
+            if (viewCamera == null)
+            {
+                GameObject cameraObject = new GameObject("HeroCamera");
+                cameraObject.transform.SetParent(transform, false);
+                cameraObject.transform.localPosition = new Vector3(0f, 1.55f, 0f);
+                viewCamera = cameraObject.AddComponent<Camera>();
+            }
+
+            viewCamera.gameObject.tag = "MainCamera";
+            if (viewCamera.GetComponent<AudioListener>() == null)
+                viewCamera.gameObject.AddComponent<AudioListener>();
+
+            if (projectileSpawnPoint == null)
+            {
+                GameObject spawnObject = new GameObject("ProjectileSpawn");
+                projectileSpawnPoint = spawnObject.transform;
+                projectileSpawnPoint.SetParent(viewCamera.transform, false);
+                projectileSpawnPoint.localPosition = Vector3.forward * 1.1f;
+            }
+
+            motor.SetViewTransform(viewCamera.transform);
+        }
+
+        private void EnsureAbilityComponents()
+        {
+            MeleePunchAbility punch = GetComponent<MeleePunchAbility>();
+            if (punch == null)
+            {
+                punch = gameObject.AddComponent<MeleePunchAbility>();
+                punch.SetCooldown(.35f);
+            }
+
+            ProjectileCaster projectile = GetComponent<ProjectileCaster>();
+            if (projectile == null)
+            {
+                projectile = gameObject.AddComponent<ProjectileCaster>();
+                projectile.SetCooldown(.55f);
+            }
+
+            DashAbility dash = GetComponent<DashAbility>();
+            if (dash == null)
+            {
+                dash = gameObject.AddComponent<DashAbility>();
+                dash.SetCooldown(1.5f);
+            }
+
+            RadialSmashAbility smash = GetComponent<RadialSmashAbility>();
+            if (smash == null)
+            {
+                smash = gameObject.AddComponent<RadialSmashAbility>();
+                smash.SetCooldown(4f);
+            }
+
+            punch.SetAttackOrigin(viewCamera.transform);
+            projectile.SetSpawnPoint(projectileSpawnPoint);
+            dash.SetDirectionSource(transform);
+            smash.SetCenterPoint(transform);
+            abilityLoadout.Configure(punch, projectile, dash, smash);
+        }
+
+        private static void LockCursor()
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
-        void Look()
+        private void OnGUI()
         {
-            Vector2 d = Mouse.current.delta.ReadValue() * .12f;
-            transform.Rotate(Vector3.up * d.x);
-            pitch = Mathf.Clamp(pitch - d.y, -85, 85);
-            cam.transform.localRotation = Quaternion.Euler(pitch, 0, 0);
-        }
+            if (health == null)
+                return;
 
-        void Move()
-        {
-            Vector2 i = Vector2.zero;
-            if (Keyboard.current.wKey.isPressed) i.y++;
-            if (Keyboard.current.sKey.isPressed) i.y--;
-            if (Keyboard.current.dKey.isPressed) i.x++;
-            if (Keyboard.current.aKey.isPressed) i.x--;
-            i = Vector2.ClampMagnitude(i, 1);
+            string heroName = heroProfile != null && heroProfile.Definition != null
+                ? heroProfile.Definition.DisplayName
+                : "HERO VR";
+            HeroDefinition definition = heroProfile != null
+                ? heroProfile.Definition
+                : null;
+            GUI.Box(new Rect(18, 18, 350, 190), $"{heroName.ToUpperInvariant()} — SANDBOX");
+            GUI.Label(new Rect(32, 48, 300, 22),
+                $"Health: {Mathf.CeilToInt(health.CurrentHealth)}/{Mathf.CeilToInt(health.MaxHealth)}");
 
-            if (controller.isGrounded && verticalVelocity.y < 0) verticalVelocity.y = -2;
-            if (controller.isGrounded && Keyboard.current.spaceKey.wasPressedThisFrame)
-                verticalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-            verticalVelocity.y += gravity * Time.deltaTime;
-            Vector3 horizontal = (transform.right * i.x + transform.forward * i.y) * moveSpeed;
-            controller.Move((horizontal + verticalVelocity) * Time.deltaTime);
-        }
-
-        void Punch()
-        {
-            nextPunch = Time.time + .35f;
-            Vector3 center = cam.transform.position + cam.transform.forward * punchRange;
-
-            foreach (Collider hit in Physics.OverlapSphere(center, punchRadius))
+            if (ultimateCharge != null)
             {
-                if (hit.transform.root == transform.root) continue;
-                Damageable d = hit.GetComponentInParent<Damageable>();
-                if (d == null) continue;
-
-                d.TakeDamage(new DamageInfo(
-                    punchDamage,
-                    gameObject,
-                    hit.ClosestPoint(center),
-                    cam.transform.forward,
-                    punchForce));
-                Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
-                if (rb != null && !rb.isKinematic)
-                    rb.AddForce(cam.transform.forward * punchForce, ForceMode.Impulse);
-                break;
+                string ultimateStatus = ultimateCharge.IsUltimateReady
+                    ? "READY"
+                    : $"{Mathf.RoundToInt(ultimateCharge.NormalizedCharge * 100f)}%";
+                GUI.Label(new Rect(32, 70, 300, 22),
+                    $"{(definition != null ? definition.ResourceName : "Charge")} / " +
+                    $"{(definition != null ? definition.UltimateName : "Ultimate")}: {ultimateStatus}");
             }
-        }
 
-        void Blast()
-        {
-            nextBlast = Time.time + .55f;
-            Vector3 dir = cam.transform.forward;
+            if (opponentHealth != null)
+            {
+                GUI.Label(new Rect(32, 92, 300, 22),
+                    $"Enemy: {Mathf.CeilToInt(opponentHealth.CurrentHealth)}");
+            }
 
-            GameObject p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            p.name = "EnergyBlast";
-            p.transform.position = cam.transform.position + dir * 1.1f;
-            p.transform.localScale = Vector3.one * .32f;
-            p.GetComponent<Renderer>().material.color = new Color(.15f, .75f, 1f);
-
-            Rigidbody rb = p.AddComponent<Rigidbody>();
-            rb.useGravity = false;
-            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-
-            EnergyProjectile projectile = p.AddComponent<EnergyProjectile>();
-            projectile.Launch(dir * blastSpeed, gameObject);
-        }
-
-        void Dash()
-        {
-            nextDash = Time.time + 1.5f;
-            controller.Move(transform.forward * dashDistance);
-        }
-
-        void Smash()
-        {
-            nextSmash = Time.time + 4f;
-
-            AreaDamage.Apply(
-                transform.position,
-                smashRadius,
-                smashDamage,
-                smashForce,
-                gameObject,
-                smashHitBuffer,
-                smashDamageTargets,
-                smashPhysicsTargets);
-        }
-
-        void OnGUI()
-        {
-            GUI.Box(new Rect(18, 18, 330, 150), "HERO VR — PROTOTYPE 0.1");
-            GUI.Label(new Rect(32, 48, 300, 22), $"Health: {Mathf.CeilToInt(health.CurrentHealth)}");
-            if (opponent != null)
-                GUI.Label(new Rect(32, 70, 300, 22), $"Enemy: {Mathf.CeilToInt(opponent.Health.CurrentHealth)}");
-            GUI.Label(new Rect(32, 96, 300, 60),
-                "WASD Move | Mouse Look | Space Super Jump\nLMB Punch | RMB Blast | E Super Smash\nShift Dash | Esc Release Mouse");
-            GUI.Label(new Rect(Screen.width/2f - 5, Screen.height/2f - 12, 20, 25), "+");
+            GUI.Label(new Rect(32, 120, 320, 75),
+                "WASD Move | Mouse Look | Space Super Jump\n" +
+                $"LMB {(definition != null ? definition.PrimaryName : "Punch")} | " +
+                $"RMB {(definition != null ? definition.SecondaryName : "Blast")}\n" +
+                $"E {(definition != null ? definition.UltimateName : "Ultimate")} (full charge)\n" +
+                $"Shift {(definition != null ? definition.MovementName : "Dash")} | Esc Release Mouse");
+            GUI.Label(
+                new Rect(Screen.width / 2f - 5f, Screen.height / 2f - 12f, 20f, 25f),
+                "+");
         }
     }
 }

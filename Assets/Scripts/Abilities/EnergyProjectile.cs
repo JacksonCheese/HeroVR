@@ -20,13 +20,23 @@ namespace HeroVR.Abilities
         {
             rb = GetComponent<Rigidbody>();
             projectileColliders = GetComponentsInChildren<Collider>();
-            Destroy(gameObject, lifetime);
         }
 
         public void Launch(Vector3 velocity, GameObject owner = null)
         {
             SetOwner(owner);
             rb.linearVelocity = velocity;
+            Destroy(gameObject, lifetime);
+        }
+
+        public void ConfigureCombat(
+            float damageAmount,
+            float duration,
+            float impulse)
+        {
+            damage = Mathf.Max(0f, damageAmount);
+            lifetime = Mathf.Max(.01f, duration);
+            knockbackImpulse = Mathf.Max(0f, impulse);
         }
 
         public void SetOwner(GameObject owner)

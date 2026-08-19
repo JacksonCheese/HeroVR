@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using HeroVR.Abilities;
 using HeroVR.Combat;
 
 namespace HeroVR.Prototype
@@ -27,11 +28,12 @@ namespace HeroVR.Prototype
             ConfigureArena();
 
             DesktopHeroController player = GetOrCreatePlayer();
+            ConfigurePrototypeProjectile(player);
             DisableNonPlayerCameras(player);
 
             TrainingBot enemy = GetOrCreateEnemy();
-            player.SetOpponent(enemy);
-            enemy.SetTarget(player);
+            player.SetOpponent(enemy.Health);
+            enemy.SetTarget(player.Health);
 
             CreatePhysicsPropsIfMissing();
         }
@@ -141,6 +143,29 @@ namespace HeroVR.Prototype
                 respawn = actor.AddComponent<RespawnOnDeath>();
 
             respawn.SetRespawnDelay(delay);
+        }
+
+        private void ConfigurePrototypeProjectile(DesktopHeroController player)
+        {
+            if (player.AbilityLoadout.SecondaryAttack is not ProjectileCaster caster ||
+                caster.ProjectilePrefab != null)
+            {
+                return;
+            }
+
+            GameObject template = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            template.name = "PrototypeEnergyProjectileTemplate";
+            template.SetActive(false);
+            template.transform.SetParent(transform);
+            template.transform.localScale = Vector3.one * .32f;
+            template.GetComponent<Renderer>().material.color = new Color(.15f, .75f, 1f);
+
+            Rigidbody body = template.AddComponent<Rigidbody>();
+            body.useGravity = false;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            EnergyProjectile projectile = template.AddComponent<EnergyProjectile>();
+            player.SetProjectilePrefab(projectile);
         }
 
         private static void CreatePhysicsPropsIfMissing()

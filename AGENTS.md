@@ -20,13 +20,46 @@ This is a private game, not currently a public live-service product. Favor a rel
 ## Current Technology
 
 - Unity 6
-- Universal Render Pipeline is the intended render pipeline.
+- The repository currently uses Unity's built-in render pipeline.
+- Universal Render Pipeline remains a possible later migration, but do not migrate or change rendering settings without explicit coordination.
 - OpenXR
 - XR Interaction Toolkit
 - Unity Input System
 - Meta Quest 2 is the performance and interaction baseline.
 
 Do not introduce a second input, XR, rendering, physics, or networking framework without explaining the need and receiving approval.
+
+## Two-Developer Ownership
+
+HeroVR development is split between a gameplay developer and an environment developer working on separate Git branches. Keep their asset ownership boundaries explicit so the branches can merge with minimal Unity scene and prefab conflicts.
+
+The gameplay developer owns:
+
+- gameplay scripts and gameplay tests
+- player, character, ability, enemy, match, and other gameplay prefabs
+- generic arena/gameplay integration components such as spawn-point metadata
+- gameplay-only sandbox scenes
+- future XR player, hand, and gameplay prefabs
+
+The environment developer owns:
+
+- production arena scenes and arena prefabs
+- environment geometry, buildings, platforms, and props
+- environment materials, lighting, and environmental art
+- environmental collision layout and arena-specific placement
+
+Production arenas should use small gameplay-owned integration components rather than contain arena-specific implementations of player, combat, ability, AI, or match logic. Gameplay must discover these components without depending on scene names, specifically named GameObjects, or a particular hero controller.
+
+Environment work may place and configure gameplay-owned spawn-point and integration components. Changes to the behavior or serialized contract of those components remain gameplay-owned and should be coordinated before environment scenes depend on them.
+
+The following are shared, conflict-prone areas and require coordination before modification:
+
+- `ProjectSettings`, including tags, layers, build scenes, graphics, quality, Android, and XR settings
+- `Packages/manifest.json` and `Packages/packages-lock.json`
+- production arena scenes and shared prefabs
+- asset moves or renames that change Unity `.meta` paths
+
+Do not require the environment developer to edit this guide on their branch merely to consume the generic gameplay contract.
 
 ## Development Roadmap
 
@@ -100,9 +133,29 @@ The current custom code is organized under `Assets/Scripts`:
 - `Combat/DamageTester.cs` is temporary diagnostic code.
 - `Abilities/EnergyProjectile.cs` contains projectile collision, damage, and knockback behavior.
 - `Abilities/ProjectileCaster.cs` is the current action-to-projectile bridge.
+- `Abilities/HeroAbilityLoadout.cs` is the shared ability command surface for desktop and XR input.
+- `Movement/DesktopCharacterMotor.cs` owns desktop locomotion without owning keyboard input.
 - `Prototype/DesktopHeroController.cs` is the temporary desktop vertical slice.
 - `Prototype/TrainingBot.cs` is the initial enemy implementation.
 - `Prototype/PrototypeArenaBootstrap.cs` constructs the current prototype arena at runtime.
+- `XR/XRCharacterMotor.cs` owns head-relative XR locomotion and comfort snap turning.
+- `XR/XRHeroInputAdapter.cs` maps Quest/OpenXR controls into the shared locomotion and ability APIs.
+- `XR/TrackedHandPhysicsFollower.cs` drives kinematic punch proxies and supplies tracked velocity to `PunchHitbox`.
+- `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
+- `Heroes/HeroDefinition.cs` is the data source for hero identity, combat tuning, ability names, and ultimate-resource rules.
+- `Heroes/HeroProfile.cs` applies one definition to the existing reusable ability and combat components.
+- `Heroes/HeroUltimateCharge.cs` implements the optional resource gate used by charged ultimate abilities.
+- `Heroes/HeroStatusDisplay.cs` is the lightweight XR status presenter; it does not own gameplay state.
+
+The gameplay-owned validation scenes are `Assets/Scenes/Gameplay/GameplaySandbox.unity`
+and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. They are not production arenas.
+
+The first configured hero is **Kinetic Vanguard**, defined by
+`Assets/Heroes/KineticVanguard/KineticVanguard.asset`. Both desktop and XR player
+prefabs reference that definition. Kinetic Vanguard gains Momentum from actual
+damage dealt and damage taken, then consumes a full meter to activate Kinetic Nova.
+Future heroes should use their own definition and composed loadout rather than fork
+`Damageable`, the input adapters, or the locomotion components.
 
 Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:
 
@@ -137,6 +190,7 @@ Design local combat so it can later become server-authoritative, but do not add 
 - Keep desktop prototype play possible while XR support is added, unless the user explicitly ends desktop support.
 - XR initialization should be deliberate per build target. Desktop prototype testing must not require an active headset or desktop OpenXR runtime.
 - Quest controller profiles and hand tracking are separate interaction paths; do not assume hand tracking is required for the first Quest milestone.
+- The initial XR bindings use left stick movement, right stick snap turn, left X jump, left stick-click dash, right trigger projectile, and right A radial smash. Physical hand velocity activates punch damage through `PunchHitbox` rather than a button binding.
 
 ## Quest 2 Performance Baseline
 
@@ -209,6 +263,11 @@ Add focused tests as stable seams emerge. High-value early tests include:
 - attack rejection while dead
 
 For Quest changes, a successful Editor test is not sufficient. Clearly identify when an Android build, on-device check, controller check, tracking check, or performance capture remains outstanding.
+
+Quest 2 on-device validation for the initial XR foundation was explicitly deferred by
+the project owner. Continue development without treating it as a milestone blocker,
+but keep the lack of device validation visible and fix regressions retroactively when
+hardware testing becomes available.
 
 ## Working Style for Codex
 

@@ -1,43 +1,82 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace HeroVR.Abilities
 {
-    public class ProjectileCaster : MonoBehaviour
+    public sealed class ProjectileCaster : HeroAbility
     {
         [SerializeField] private EnergyProjectile projectilePrefab;
         [SerializeField] private Transform spawnPoint;
-        [SerializeField] private InputActionProperty fireAction;
         [SerializeField] private float projectileSpeed = 20f;
-        [SerializeField] private float cooldown = 0.4f;
+        [SerializeField, Min(0f)] private float projectileDamage = 25f;
+        [SerializeField, Min(.01f)] private float projectileLifetime = 5f;
+        [SerializeField, Min(0f)] private float projectileKnockbackImpulse = 6f;
 
-        private float nextFireTime;
+        public EnergyProjectile ProjectilePrefab => projectilePrefab;
+        public Transform SpawnPoint => spawnPoint;
 
-        private void OnEnable()
+        public void Configure(
+            EnergyProjectile prefab,
+            Transform projectileSpawnPoint,
+            float speed)
         {
-            fireAction.action.Enable();
-            fireAction.action.performed += Fire;
+            projectilePrefab = prefab;
+            spawnPoint = projectileSpawnPoint;
+            projectileSpeed = Mathf.Max(0f, speed);
         }
 
-        private void OnDisable()
+        public void SetProjectilePrefab(EnergyProjectile prefab)
         {
-            fireAction.action.performed -= Fire;
-            fireAction.action.Disable();
+            projectilePrefab = prefab;
         }
 
-        private void Fire(InputAction.CallbackContext context)
+        public void SetSpawnPoint(Transform projectileSpawnPoint)
         {
-            if (Time.time < nextFireTime || projectilePrefab == null || spawnPoint == null)
-                return;
+            spawnPoint = projectileSpawnPoint;
+        }
 
-            nextFireTime = Time.time + cooldown;
+        public void ConfigureCombat(
+            float damage,
+            float lifetime,
+            float knockbackImpulse)
+        {
+            projectileDamage = Mathf.Max(0f, damage);
+            projectileLifetime = Mathf.Max(.01f, lifetime);
+            projectileKnockbackImpulse = Mathf.Max(0f, knockbackImpulse);
+        }
 
-            EnergyProjectile projectile =
-                Instantiate(projectilePrefab, spawnPoint.position, spawnPoint.rotation);
+        protected override bool CanActivate()
+        {
+            return projectilePrefab != null && spawnPoint != null;
+        }
 
+        protected override bool Activate()
+        {
+            EnergyProjectile projectile = Instantiate(
+                projectilePrefab,
+                spawnPoint.position,
+                spawnPoint.rotation);
+
+            if (!projectile.gameObject.activeSelf)
+                projectile.gameObject.SetActive(true);
+
+            projectile.ConfigureCombat(
+                projectileDamage,
+                projectileLifetime,
+                projectileKnockbackImpulse);
             projectile.Launch(
                 spawnPoint.forward * projectileSpeed,
-                transform.root.gameObject);
+                Owner);
+
+            return true;
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            projectileSpeed = Mathf.Max(0f, projectileSpeed);
+            projectileDamage = Mathf.Max(0f, projectileDamage);
+            projectileLifetime = Mathf.Max(.01f, projectileLifetime);
+            projectileKnockbackImpulse = Mathf.Max(0f, projectileKnockbackImpulse);
         }
     }
 }

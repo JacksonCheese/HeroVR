@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7882b89db23db4052bade2f3aa4c2ca2, type: 3}
+  m_Name: KineticVanguard
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroDefinition
+  heroId: kinetic-vanguard
+  displayName: Kinetic Vanguard
+  description: A close-range kinetic fighter who converts combat momentum into a
+    devastating nova.
+  signatureColor: {r: 0.1, g: 0.65, b: 1, a: 1}
+  resourceName: Momentum
+  primaryName: Kinetic Punch
+  secondaryName: Kinetic Bolt
+  movementName: Burst Dash
+  ultimateName: Kinetic Nova
+  maxHealth: 125
+  maximumUltimateCharge: 100
+  chargePerDamageDealt: 1
+  chargePerDamageTaken: 0.5
+  melee:
+    cooldown: 0.32
+    damage: 24
+    range: 1.6
+    radius: 0.7
+    knockbackImpulse: 10
+  physicalPunch:
+    minimumSpeed: 1.4
+    damagePerSpeed: 8
+    maximumDamage: 32
+    knockbackMultiplier: 2
+    maximumKnockbackImpulse: 14
+  projectile:
+    cooldown: 0.45
+    damage: 24
+    speed: 26
+    lifetime: 5
+    knockbackImpulse: 7
+  dash:
+    cooldown: 1.2
+    distance: 6
+  ultimate:
+    cooldown: 1
+    radius: 4.5
+    damage: 38
+    knockbackImpulse: 18
