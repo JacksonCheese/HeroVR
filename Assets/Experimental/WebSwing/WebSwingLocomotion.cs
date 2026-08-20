@@ -13,15 +13,16 @@ namespace HeroVR.Experimental
     /// Why the motor is disabled rather than extended: XRCharacterMotor is sealed and its Update()
     /// recomputes velocity from scratch every frame before driving the CharacterController itself,
     /// so there is no seam to feed momentum through. This component takes the controller for the
-    /// whole airborne phase and hands it back on landing, so the two never fight. The proper fix is
-    /// an external-velocity API on XRCharacterMotor; that is a gameplay-side change.
+    /// whole airborne phase and hands it back on landing, so the two never fight. The proper fix
+    /// is an external-velocity API on XRCharacterMotor; that is a gameplay-side change.
     ///
-    /// Aiming comes from the tracked controller transforms, not the physics hands. The physics
-    /// hands lag behind the real pose and rotate under physics, so aiming from them made the web
-    /// fire somewhere other than where the player was pointing. The web is still drawn from the
-    /// physics hand, because that is the object the player actually sees.
+    /// Aiming uses the tracked controller transforms, not the physics hands: the physics hands lag
+    /// the real pose and rotate under physics. Webs are still drawn from the physics hands, since
+    /// those are the objects the player sees.
     ///
-    /// Input uses the grip buttons, which XRHeroInputAdapter leaves free.
+    /// Head-through-hand aiming was tried and removed. The hand sits below the head, so that ray
+    /// points downward and webs stuck to the floor - fine for targets at eye level, wrong for
+    /// slinging at things overhead.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController))]
@@ -34,24 +35,7 @@ namespace HeroVR.Experimental
             Airborne
         }
 
-        public enum AimMode
-        {
-            /// <summary>
-            /// Point along the controller, corrected by <see cref="aimPitchOffset"/>. A Touch
-            /// controller's forward axis runs down the handle, well below where the hand appears
-            /// to point, so it needs tilting up to match player intent.
-            /// </summary>
-            ControllerForward = 0,
-
-            /// <summary>
-            /// Ray from the head through the hand and outward. Ignores controller orientation
-            /// entirely, so wrist angle cannot throw the aim off. Usually the more intuitive of
-            /// the two for distant targets.
-            /// </summary>
-            HeadThroughHand = 1
-        }
-
-        [Header("Aim sources (tracked controllers - accurate pose)")]
+        [Header("Aim sources (tracked controllers)")]
         [SerializeField] private Transform leftAim;
         [SerializeField] private Transform rightAim;
         [SerializeField] private Transform head;
@@ -61,34 +45,35 @@ namespace HeroVR.Experimental
         [SerializeField] private Transform rightHand;
 
         [Header("Aiming")]
-        [SerializeField] private AimMode aimMode = AimMode.ControllerForward;
         [SerializeField, Min(1f)] private float maxWebRange = 35f;
-        [Tooltip("0 is a pure raycast. Small values forgive shaky hands without snapping to " +
-                 "things you did not aim at. Above about 0.4 it starts to feel like autolock.")]
-        [SerializeField, Range(0f, 1f)] private float aimAssistRadius = .18f;
+        [Tooltip("0 is a pure raycast. Small values forgive shaky hands. Above about 0.4 it " +
+                 "starts snapping to things you did not aim at.")]
+        [SerializeField, Range(0f, 1f)] private float aimAssistRadius = .25f;
         [SerializeField] private LayerMask anchorLayers = ~0;
-        [Tooltip("ControllerForward only. Negative tilts the aim upward. A Touch controller's " +
-                 "forward runs down the handle, so roughly -35 lines it up with where the hand " +
-                 "looks like it is pointing. Raise toward 0 if webs fire too high.")]
-        [SerializeField, Range(-60f, 30f)] private float aimPitchOffset = -35f;
+        [Tooltip("Negative tilts the aim upward. Leave at 0 to point exactly along the " +
+                 "controller, then adjust only if webs consistently land high or low.")]
+        [SerializeField, Range(-45f, 45f)] private float aimPitchOffset = 0f;
 
         [Header("Swing feel")]
-        [SerializeField] private float gravity = -20f;
-        [Tooltip("How fast the rope shortens while held. Higher lifts you harder through the arc.")]
-        [SerializeField, Min(0f)] private float reelInSpeed = 4.5f;
+        [SerializeField] private float gravity = -13f;
+        [SerializeField, Min(0f)] private float reelInSpeed = 5.2f;
         [SerializeField, Min(1f)] private float minRopeLength = 2.5f;
-        [Tooltip("Steering while swinging. Keep low or momentum stops mattering.")]
         [SerializeField, Min(0f)] private float airControl = 5f;
-        [Tooltip("Push along your look direction the instant you let go.")]
         [SerializeField, Min(0f)] private float releaseBoost = 3.5f;
-        [Tooltip("Speed kept when a swing starts, so attaching does not feel like a stop.")]
         [SerializeField, Min(0f)] private float attachSpeedCarry = 5f;
         [SerializeField, Min(0f)] private float maxSpeed = 30f;
+        [Tooltip("Ignore anchors below this height difference so webs do not stick to the floor " +
+                 "at your feet, which reads as the swing failing.")]
+        [SerializeField] private float minAnchorHeightAboveFeet = 1.5f;
 
-        [Header("Web visual")]
-        [SerializeField, Min(.005f)] private float webThickness = .022f;
-        [Tooltip("How long a missed web stays visible before retracting.")]
-        [SerializeField, Min(0f)] private float missVisualDuration = .18f;
+        [Header("Visuals")]
+        [SerializeField, Min(.005f)] private float webThickness = .05f;
+        [SerializeField, Min(0f)] private float missVisualDuration = .35f;
+        [Tooltip("Draw a thin ray from each hand showing exactly where a web would fire. " +
+                 "Invaluable for checking aim; turn off once it feels right.")]
+        [SerializeField] private bool showAimRay = true;
+        [SerializeField, Min(.001f)] private float aimRayThickness = .012f;
+        [SerializeField, Min(1f)] private float aimRayLength = 12f;
 
         private CharacterController controller;
         private XRCharacterMotor motor;
@@ -106,6 +91,9 @@ namespace HeroVR.Experimental
         private Transform activeOrigin;
 
         private LineRenderer web;
+        private LineRenderer leftRay;
+        private LineRenderer rightRay;
+
         private Vector3 missEnd;
         private Transform missOrigin;
         private float missUntil;
@@ -124,7 +112,9 @@ namespace HeroVR.Experimental
             rightGrip = new InputAction(
                 "WebSwingRight", InputActionType.Button, "<XRController>{RightHand}/gripPressed");
 
-            CreateWebRenderer();
+            web = CreateLine("WebLine", webThickness, Color.white);
+            leftRay = CreateLine("AimRayLeft", aimRayThickness, new Color(.4f, .8f, 1f));
+            rightRay = CreateLine("AimRayRight", aimRayThickness, new Color(.4f, .8f, 1f));
         }
 
         private void OnEnable()
@@ -146,7 +136,7 @@ namespace HeroVR.Experimental
             {
                 if (state != State.Grounded)
                     ReleaseControl();
-                UpdateWebVisual();
+                UpdateVisuals();
                 return;
             }
 
@@ -162,12 +152,10 @@ namespace HeroVR.Experimental
             leftWasHeld = leftHeld;
             rightWasHeld = rightHeld;
 
-            bool anyHeld = leftHeld || rightHeld;
-
             switch (state)
             {
                 case State.Swinging:
-                    if (!anyHeld)
+                    if (!leftHeld && !rightHeld)
                         Release();
                     else
                         TickSwing();
@@ -178,13 +166,9 @@ namespace HeroVR.Experimental
                     break;
             }
 
-            UpdateWebVisual();
+            UpdateVisuals();
         }
 
-        /// <summary>
-        /// Always produces a shot. On a hit it anchors; on a miss it still draws a web out to
-        /// range and retracts, so a squeeze never feels like it was swallowed.
-        /// </summary>
         private void FireWeb(Transform aim, Transform origin)
         {
             Transform aimSource = aim != null ? aim : head;
@@ -192,25 +176,32 @@ namespace HeroVR.Experimental
                 return;
 
             Transform visualOrigin = origin != null ? origin : aimSource;
-            Vector3 direction = AimDirection(aimSource, visualOrigin);
+            Vector3 direction = AimDirection(aimSource);
+            Vector3 rayStart = aimSource.position;
 
+            RaycastHit hit;
             bool hitSomething = aimAssistRadius <= .001f
-                ? Physics.Raycast(aimSource.position, direction, out RaycastHit hit,
-                    maxWebRange, anchorLayers, QueryTriggerInteraction.Ignore)
-                : Physics.SphereCast(aimSource.position, aimAssistRadius, direction, out hit,
-                    maxWebRange, anchorLayers, QueryTriggerInteraction.Ignore);
+                ? Physics.Raycast(rayStart, direction, out hit, maxWebRange, anchorLayers,
+                    QueryTriggerInteraction.Ignore)
+                : Physics.SphereCast(rayStart, aimAssistRadius, direction, out hit, maxWebRange,
+                    anchorLayers, QueryTriggerInteraction.Ignore);
 
             if (!hitSomething || hit.transform.root == transform.root)
             {
-                ShowMiss(visualOrigin, aimSource.position + direction * maxWebRange);
+                ShowMiss(visualOrigin, rayStart + direction * maxWebRange);
+                return;
+            }
+
+            // Anchoring to the ground under your own feet reads as the web failing, so require
+            // the anchor to be meaningfully above the player.
+            if (hit.point.y < transform.position.y + minAnchorHeightAboveFeet)
+            {
+                ShowMiss(visualOrigin, hit.point);
                 return;
             }
 
             anchor = hit.point;
             activeOrigin = visualOrigin;
-
-            // Clamp rather than reject when the anchor is close. Rejecting made short-range
-            // shots silently do nothing, which read as the web failing to fire.
             ropeLength = Mathf.Max(minRopeLength, Vector3.Distance(transform.position, anchor));
 
             if (state == State.Grounded)
@@ -224,22 +215,11 @@ namespace HeroVR.Experimental
             state = State.Swinging;
         }
 
-        private Vector3 AimDirection(Transform aimSource, Transform handVisual)
+        private Vector3 AimDirection(Transform aimSource)
         {
-            if (aimMode == AimMode.HeadThroughHand && head != null)
-            {
-                Transform handPoint = handVisual != null ? handVisual : aimSource;
-                Vector3 through = handPoint.position - head.position;
-
-                // Degenerate if the hand is at the face; fall back to the controller.
-                if (through.sqrMagnitude > .0025f)
-                    return through.normalized;
-            }
-
             if (Mathf.Abs(aimPitchOffset) < .01f)
                 return aimSource.forward;
 
-            // Negative pitch tilts upward, correcting the Touch controller's handle-aligned axis.
             return Quaternion.AngleAxis(aimPitchOffset, aimSource.right) * aimSource.forward;
         }
 
@@ -333,29 +313,53 @@ namespace HeroVR.Experimental
                 motor.enabled = true;
         }
 
-        private void CreateWebRenderer()
+        private LineRenderer CreateLine(string lineName, float thickness, Color color)
         {
-            GameObject webObject = new GameObject("WebLine");
-            webObject.transform.SetParent(transform, false);
+            GameObject lineObject = new GameObject(lineName);
+            lineObject.transform.SetParent(transform, false);
 
-            web = webObject.AddComponent<LineRenderer>();
-            web.positionCount = 2;
-            web.startWidth = webThickness;
-            web.endWidth = webThickness;
-            web.useWorldSpace = true;
-            web.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            web.receiveShadows = false;
-            web.enabled = false;
+            LineRenderer line = lineObject.AddComponent<LineRenderer>();
+            line.positionCount = 2;
+            line.startWidth = thickness;
+            line.endWidth = thickness;
+            line.useWorldSpace = true;
+            line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            line.receiveShadows = false;
+            line.enabled = false;
 
-            // Unlit so the web reads against both bright sky and dark geometry.
+            // Unlit so it reads against both bright sky and dark geometry. Falls back through
+            // several shader names because availability varies by pipeline.
             Shader shader = Shader.Find("Unlit/Color");
+            if (shader == null)
+                shader = Shader.Find("Sprites/Default");
             if (shader == null)
                 shader = Shader.Find("Standard");
 
-            web.material = new Material(shader) { color = Color.white };
+            Material material = new Material(shader);
+            material.color = color;
+
+            // Standard ignores plain colour on an emissive-less material at distance, so push
+            // emission too when that is what we fell back to.
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", color);
+            }
+
+            line.material = material;
+            line.startColor = color;
+            line.endColor = color;
+            return line;
         }
 
-        private void UpdateWebVisual()
+        private void UpdateVisuals()
+        {
+            UpdateWebLine();
+            UpdateAimRay(leftRay, leftAim, leftHand);
+            UpdateAimRay(rightRay, rightAim, rightHand);
+        }
+
+        private void UpdateWebLine()
         {
             if (state == State.Swinging && activeOrigin != null)
             {
@@ -374,6 +378,20 @@ namespace HeroVR.Experimental
             }
 
             web.enabled = false;
+        }
+
+        private void UpdateAimRay(LineRenderer ray, Transform aim, Transform origin)
+        {
+            if (!showAimRay || aim == null || state == State.Swinging)
+            {
+                ray.enabled = false;
+                return;
+            }
+
+            Transform from = origin != null ? origin : aim;
+            ray.enabled = true;
+            ray.SetPosition(0, from.position);
+            ray.SetPosition(1, aim.position + AimDirection(aim) * aimRayLength);
         }
 
         private void OnValidate()

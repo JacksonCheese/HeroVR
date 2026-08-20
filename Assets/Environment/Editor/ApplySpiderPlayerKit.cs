@@ -71,21 +71,16 @@ namespace HeroVR.EnvironmentTools
                 // tuning has to be written explicitly or old values silently persist. This is the
                 // one place to retune the swing.
                 AssignFloat(serialized, "maxWebRange", 35f);
-                AssignFloat(serialized, "aimAssistRadius", .18f);
+                AssignFloat(serialized, "aimAssistRadius", .25f);
 
-                // HeadThroughHand by default. The ControllerForward path needs a pitch correction
-                // whose right value depends on how the player grips the controller: 0 aimed too
-                // low in testing and -35 sent webs nearly straight up. Casting from the head
-                // through the hand removes that variable entirely, since controller orientation
-                // stops mattering.
-                AssignEnum(serialized, "aimMode", 1);
+                // Point straight along the controller. Pitch correction is left at 0 rather than
+                // guessed: -35 sent webs nearly vertical, and head-through-hand aimed at the floor
+                // because the hand sits below the head. The aim ray below makes the real direction
+                // visible so this can be judged instead of estimated.
+                AssignFloat(serialized, "aimPitchOffset", 0f);
 
-                // Only used by ControllerForward. Kept mild after -35 proved far too steep.
-                AssignFloat(serialized, "aimPitchOffset", -12f);
-
-                // Lighter than real gravity so falls hang longer and arcs read as superhero
-                // rather than realistic. Reel-in is raised to keep swings from going limp now
-                // that there is less energy in the pendulum.
+                // Lighter than real gravity so falls hang and arcs read as superhero. Reel-in is
+                // raised to compensate, since weaker gravity puts less energy into the pendulum.
                 AssignFloat(serialized, "gravity", -13f);
                 AssignFloat(serialized, "reelInSpeed", 5.2f);
 
@@ -94,7 +89,14 @@ namespace HeroVR.EnvironmentTools
                 AssignFloat(serialized, "releaseBoost", 3.5f);
                 AssignFloat(serialized, "attachSpeedCarry", 5f);
                 AssignFloat(serialized, "maxSpeed", 30f);
-                AssignFloat(serialized, "missVisualDuration", .18f);
+                AssignFloat(serialized, "missVisualDuration", .35f);
+                AssignFloat(serialized, "minAnchorHeightAboveFeet", 1.5f);
+
+                // Thicker web and a visible aim ray, so a shot can never be missed on screen.
+                AssignFloat(serialized, "webThickness", .05f);
+                AssignBool(serialized, "showAimRay", true);
+                AssignFloat(serialized, "aimRayThickness", .012f);
+                AssignFloat(serialized, "aimRayLength", 12f);
 
                 serialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -125,6 +127,18 @@ namespace HeroVR.EnvironmentTools
             }
 
             return count;
+        }
+
+        private static void AssignBool(SerializedObject serialized, string field, bool value)
+        {
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[ApplySpiderPlayerKit] No serialized field named " + field);
+                return;
+            }
+
+            property.boolValue = value;
         }
 
         private static void AssignEnum(SerializedObject serialized, string field, int value)

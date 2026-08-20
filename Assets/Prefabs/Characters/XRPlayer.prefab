@@ -455,13 +455,12 @@ MonoBehaviour:
   head: {fileID: 1587423102479437067}
   leftHand: {fileID: 557702837405239073}
   rightHand: {fileID: 39054608449809734}
-  aimMode: 1
   maxWebRange: 35
-  aimAssistRadius: 0.18
+  aimAssistRadius: 0.25
   anchorLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  aimPitchOffset: -12
+  aimPitchOffset: 0
   gravity: -13
   reelInSpeed: 5.2
   minRopeLength: 2.5
@@ -469,8 +468,12 @@ MonoBehaviour:
   releaseBoost: 3.5
   attachSpeedCarry: 5
   maxSpeed: 30
-  webThickness: 0.025
-  missVisualDuration: 0.18
+  minAnchorHeightAboveFeet: 1.5
+  webThickness: 0.05
+  missVisualDuration: 0.35
+  showAimRay: 1
+  aimRayThickness: 0.012
+  aimRayLength: 12
 --- !u!1 &574029277345312522
 GameObject:
   m_ObjectHideFlags: 0

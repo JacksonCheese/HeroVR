@@ -5,59 +5,43 @@ using UnityEngine;
 namespace HeroVR.EnvironmentTools
 {
     /// <summary>
-    /// Quick tuning for web-swing aim, so aim mode and pitch can be changed without hunting
-    /// through the Inspector between headset sessions.
+    /// Quick tuning for web-swing aim and the aim ray.
     ///
-    /// Aim pitch has no single correct value: it depends on how the player grips the controller.
-    /// These menu items exist so it can be bracketed quickly instead of guessed at.
+    /// Aim pitch has no single correct value; it depends on how the player grips the controller.
+    /// These exist so it can be bracketed by trying a few settings between headset sessions rather
+    /// than guessed at from outside the headset, which has already gone wrong twice.
     /// </summary>
     public static class WebSwingTuning
     {
         private const string PlayerPrefabPath = "Assets/Prefabs/Characters/XRPlayer.prefab";
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Mode - Head Through Hand")]
-        public static void UseHeadThroughHand()
-        {
-            Edit(swing => SetEnum(swing, "aimMode", 1), "aim mode = HeadThroughHand");
-        }
-
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Mode - Controller Pointing")]
-        public static void UseControllerForward()
-        {
-            Edit(swing => SetEnum(swing, "aimMode", 0), "aim mode = ControllerForward");
-        }
-
         [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Level (0)")]
-        public static void PitchLevel()
-        {
-            SetPitch(0f);
-        }
+        public static void PitchLevel() => SetPitch(0f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Slightly Up (-12)")]
-        public static void PitchSlight()
-        {
-            SetPitch(-12f);
-        }
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Up a little (-10)")]
+        public static void PitchUpLittle() => SetPitch(-10f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - More Up (-22)")]
-        public static void PitchMore()
-        {
-            SetPitch(-22f);
-        }
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Up more (-20)")]
+        public static void PitchUpMore() => SetPitch(-20f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Aim Down (+12)")]
-        public static void PitchDown()
-        {
-            SetPitch(12f);
-        }
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down a little (+10)")]
+        public static void PitchDownLittle() => SetPitch(10f);
+
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Aim Ray - Show")]
+        public static void ShowAimRay() => SetBool("showAimRay", true, "aim ray on");
+
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Aim Ray - Hide")]
+        public static void HideAimRay() => SetBool("showAimRay", false, "aim ray off");
 
         private static void SetPitch(float degrees)
         {
-            Edit(swing =>
-            {
-                SetEnum(swing, "aimMode", 0);
-                SetFloat(swing, "aimPitchOffset", degrees);
-            }, "aim mode = ControllerForward, pitch = " + degrees);
+            Edit(swing => SetFloat(swing, "aimPitchOffset", degrees),
+                "aim pitch = " + degrees + " degrees");
+        }
+
+        private static void SetBool(string field, bool value, string description)
+        {
+            Edit(swing => SetBoolValue(swing, field, value), description);
         }
 
         private static void Edit(System.Action<WebSwingLocomotion> change, string description)
@@ -89,17 +73,31 @@ namespace HeroVR.EnvironmentTools
             }
         }
 
-        private static void SetEnum(Object target, string field, int value)
-        {
-            SerializedObject serialized = new SerializedObject(target);
-            serialized.FindProperty(field).enumValueIndex = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-
         private static void SetFloat(Object target, string field, float value)
         {
             SerializedObject serialized = new SerializedObject(target);
-            serialized.FindProperty(field).floatValue = value;
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[WebSwingTuning] No field named " + field);
+                return;
+            }
+
+            property.floatValue = value;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetBoolValue(Object target, string field, bool value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[WebSwingTuning] No field named " + field);
+                return;
+            }
+
+            property.boolValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
