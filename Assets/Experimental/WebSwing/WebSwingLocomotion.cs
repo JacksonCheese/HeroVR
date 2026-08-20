@@ -73,9 +73,22 @@ namespace HeroVR.Experimental
                  "from a standstill leaves you hanging still instead of swinging.")]
         [SerializeField, Min(0f)] private float attachImpulse = 9f;
 
-        [Tooltip("Continuous push along the direction of travel while swinging. This is the " +
-                 "pumping that keeps arcs alive instead of decaying into a dead hang.")]
-        [SerializeField, Min(0f)] private float swingThrust = 9f;
+        [Tooltip("Automatic push along the direction of travel. Kept low so it only offsets the " +
+                 "energy the rope constraint bleeds off; the player's own arm should be doing the " +
+                 "work, not the game.")]
+        [SerializeField, Min(0f)] private float swingThrust = 3.5f;
+
+        [Header("Hand-driven swinging")]
+        [Tooltip("How strongly physically swinging your arm drives the swing. This is the main " +
+                 "source of speed: throw your hand along the arc to accelerate, like pumping.")]
+        [SerializeField, Min(0f)] private float handMotionThrust = 3.2f;
+
+        [Tooltip("Hand speed below this is ignored, so holding still or shaking slightly does " +
+                 "not creep the swing along.")]
+        [SerializeField, Min(0f)] private float handMotionDeadzone = .35f;
+
+        [Tooltip("Caps how much a single flick can contribute, so a hard swipe cannot launch you.")]
+        [SerializeField, Min(0f)] private float maxHandMotionSpeed = 6f;
 
         [Tooltip("Keep control after touching down while still moving this fast, so a swing " +
                  "runs out along the ground instead of stopping dead on contact.")]
@@ -115,6 +128,15 @@ namespace HeroVR.Experimental
         private LineRenderer web;
         private LineRenderer leftRay;
         private LineRenderer rightRay;
+
+        // Hand tracking is stored in player-local space. Measuring in world would fold the
+        // player's own motion into the reading, so simply swinging fast would look like constant
+        // arm movement and thrust would never stop.
+        private Vector3 lastLocalLeft;
+        private Vector3 lastLocalRight;
+        private Vector3 leftHandVelocity;
+        private Vector3 rightHandVelocity;
+        private bool handHistoryReady;
 
         private Vector3 missEnd;
         private Transform missOrigin;
@@ -162,6 +184,8 @@ namespace HeroVR.Experimental
                 return;
             }
 
+            TrackHandMotion();
+
             bool leftHeld = leftGrip.IsPressed();
             bool rightHeld = rightGrip.IsPressed();
 
@@ -204,12 +228,23 @@ namespace HeroVR.Experimental
             // hand where the player expects it to.
             Vector3 rayStart = WebOrigin(aimSource);
 
-            RaycastHit hit;
-            bool hitSomething = aimAssistRadius <= .001f
-                ? Physics.Raycast(rayStart, direction, out hit, maxWebRange, anchorLayers,
-                    QueryTriggerInteraction.Ignore)
-                : Physics.SphereCast(rayStart, aimAssistRadius, direction, out hit, maxWebRange,
+            RaycastHit hit = default;
+            bool hitSomething = false;
+
+            if (aimAssistRadius > .001f)
+            {
+                hitSomething = Physics.SphereCast(rayStart, aimAssistRadius, direction, out hit,
+                    maxWebRange, anchorLayers, QueryTriggerInteraction.Ignore);
+            }
+
+            // SphereCast reports nothing when its sphere begins overlapping a collider, which
+            // happens whenever the player stands near a wall or pillar. That was the "sometimes
+            // no web comes out" case. A plain ray has no such restriction, so fall back to it.
+            if (!hitSomething)
+            {
+                hitSomething = Physics.Raycast(rayStart, direction, out hit, maxWebRange,
                     anchorLayers, QueryTriggerInteraction.Ignore);
+            }
 
             if (!hitSomething || hit.transform.root == transform.root)
             {
@@ -291,6 +326,13 @@ namespace HeroVR.Experimental
             if (alongArc.sqrMagnitude > .01f)
                 velocity += alongArc.normalized * (swingThrust * dt);
 
+            // Physically swinging your arm is the main source of speed. Only the component along
+            // the arc counts: pulling straight down the rope cannot accelerate you, exactly as on
+            // a real rope, so the useful motion is a throw along the direction you want to go.
+            Vector3 handMotion = Vector3.ProjectOnPlane(ActiveHandMotion(), ropeUp);
+            if (handMotion.sqrMagnitude > .0001f)
+                velocity += handMotion * (handMotionThrust * dt);
+
             ropeLength = Mathf.Max(minRopeLength, ropeLength - reelInSpeed * dt);
 
             Vector3 predicted = transform.position + velocity * dt;
@@ -363,11 +405,58 @@ namespace HeroVR.Experimental
         /// </summary>
         private bool ShouldHandBackControl()
         {
+            // While a grip is held the player is still actively swinging, so brushing the ground
+            // mid-arc must not end it. This was a large part of stopping too often.
+            if (leftGrip.IsPressed() || rightGrip.IsPressed())
+                return false;
+
             if (!controller.isGrounded || velocity.y > 0f)
                 return false;
 
             Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
             return horizontal.magnitude <= groundedExitSpeed;
+        }
+
+        /// <summary>
+        /// Samples how fast each hand is moving relative to the player, so arm motion can drive
+        /// the swing. Measured in player-local space: in world space the player's own velocity
+        /// would swamp the reading and the game would think the arm was always moving.
+        /// </summary>
+        private void TrackHandMotion()
+        {
+            float dt = Time.deltaTime;
+            if (dt <= 0f)
+                return;
+
+            Vector3 localLeft = leftAim != null ? transform.InverseTransformPoint(leftAim.position) : Vector3.zero;
+            Vector3 localRight = rightAim != null ? transform.InverseTransformPoint(rightAim.position) : Vector3.zero;
+
+            if (handHistoryReady)
+            {
+                // Converted back to world so it can be compared against the swing arc directly.
+                leftHandVelocity = transform.TransformVector((localLeft - lastLocalLeft) / dt);
+                rightHandVelocity = transform.TransformVector((localRight - lastLocalRight) / dt);
+            }
+
+            lastLocalLeft = localLeft;
+            lastLocalRight = localRight;
+            handHistoryReady = true;
+        }
+
+        /// <summary>Combined arm motion of whichever hands are currently gripping.</summary>
+        private Vector3 ActiveHandMotion()
+        {
+            Vector3 motion = Vector3.zero;
+
+            if (leftGrip.IsPressed())
+                motion += leftHandVelocity;
+            if (rightGrip.IsPressed())
+                motion += rightHandVelocity;
+
+            if (motion.magnitude < handMotionDeadzone)
+                return Vector3.zero;
+
+            return Vector3.ClampMagnitude(motion, maxHandMotionSpeed);
         }
 
         private Vector3 AirSteering()

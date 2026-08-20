@@ -115,7 +115,7 @@ namespace HeroVR.EnvironmentTools
 
                 AssignFloat(serialized, "minRopeLength", 2.5f);
                 AssignFloat(serialized, "airControl", 5f);
-                AssignFloat(serialized, "releaseBoost", 3.5f);
+                AssignFloat(serialized, "releaseBoost", 4.5f);
                 AssignFloat(serialized, "attachSpeedCarry", 5f);
                 AssignFloat(serialized, "maxSpeed", 30f);
 
@@ -123,13 +123,19 @@ namespace HeroVR.EnvironmentTools
                 // of leaving the player hanging still.
                 AssignFloat(serialized, "attachImpulse", 9f);
 
-                // Continuous pump along the direction of travel. The rope constraint bleeds energy
-                // every frame it cancels radial velocity, so without this arcs decay to a dead hang.
-                AssignFloat(serialized, "swingThrust", 9f);
+                // Automatic pump, kept low. It only offsets the energy the rope constraint bleeds
+                // off; the player's own arm should be supplying the speed.
+                AssignFloat(serialized, "swingThrust", 3.5f);
 
-                // Let a swing run out along the ground rather than stopping dead on first contact.
-                AssignFloat(serialized, "groundedExitSpeed", 4.5f);
-                AssignFloat(serialized, "landingFriction", 14f);
+                // Arm motion is the main drive. Throwing your hand along the arc accelerates you.
+                AssignFloat(serialized, "handMotionThrust", 3.2f);
+                AssignFloat(serialized, "handMotionDeadzone", .35f);
+                AssignFloat(serialized, "maxHandMotionSpeed", 6f);
+
+                // Let a swing run out along the ground rather than stopping dead on contact.
+                // Raised and softened after landings still killed momentum too readily.
+                AssignFloat(serialized, "groundedExitSpeed", 7f);
+                AssignFloat(serialized, "landingFriction", 8f);
                 AssignFloat(serialized, "missVisualDuration", .35f);
                 AssignFloat(serialized, "minAnchorHeightAboveFeet", 1.5f);
 
