@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 1251726359473787888}
   - component: {fileID: 924545561200243880}
   - component: {fileID: 2029839800981828068}
+  - component: {fileID: 2776080908668211159}
   m_Layer: 0
   m_Name: XRPlayer
   m_TagString: Untagged
@@ -437,6 +438,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroStatusDisplay
   statusText: {fileID: 3019085972669555513}
   viewer: {fileID: 1587423102479437067}
+--- !u!114 &2776080908668211159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410554141780231977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 185263f826c36574aa3c15de72047bc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Experimental::HeroVR.Experimental.WebSwingLocomotion
+  leftHand: {fileID: 557702837405239073}
+  rightHand: {fileID: 39054608449809734}
+  head: {fileID: 1587423102479437067}
+  maxWebRange: 28
+  aimAssistRadius: 0.9
+  anchorLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  gravity: -22
+  reelInSpeed: 3.5
+  minRopeLength: 3
+  airControl: 4.5
+  releaseBoost: 2.5
+  maxSpeed: 26
+  webMaterial: {fileID: 0}
+  webThickness: 0.025
 --- !u!1 &574029277345312522
 GameObject:
   m_ObjectHideFlags: 0
@@ -719,7 +748,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7e3ce3bf95bfe4afc9abd31def4ce2d4, type: 2}
+  - {fileID: 2100000, guid: 2410ef698f1228d45a0873c43725462f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1185,7 +1214,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7e3ce3bf95bfe4afc9abd31def4ce2d4, type: 2}
+  - {fileID: 2100000, guid: 2410ef698f1228d45a0873c43725462f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
