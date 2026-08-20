@@ -2,7 +2,8 @@
   "name": "HeroVR.PlayModeTests",
   "rootNamespace": "HeroVR.Tests",
   "references": [
-    "HeroVR.Runtime"
+    "HeroVR.Runtime",
+    "Unity.AI.Navigation"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -24,6 +24,7 @@ This is a private game, not currently a public live-service product. Favor a rel
 - Universal Render Pipeline remains a possible later migration, but do not migrate or change rendering settings without explicit coordination.
 - OpenXR
 - XR Interaction Toolkit
+- AI Navigation (NavMesh path source for physics-driven AI)
 - Unity Input System
 - Meta Quest 2 is the performance and interaction baseline.
 
@@ -156,6 +157,13 @@ prefabs reference that definition. Kinetic Vanguard gains Momentum from actual
 damage dealt and damage taken, then consumes a full meter to activate Kinetic Nova.
 Future heroes should use their own definition and composed loadout rather than fork
 `Damageable`, the input adapters, or the locomotion components.
+
+`TrainingBot` uses `NavMeshAgent` only to obtain a throttled steering target.
+`NavMeshAgent.updatePosition`, `updateRotation`, and `updateUpAxis` remain disabled;
+the bot's Rigidbody and `AddForce` continue to own movement so physics impulses are
+not overwritten. When no baked NavMesh is present, the bot deliberately falls back
+to its original direct steering so `GameplaySandbox` remains usable. Production
+arenas must provide compatible baked NavMesh data before obstacle routing will work.
 
 Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:
 

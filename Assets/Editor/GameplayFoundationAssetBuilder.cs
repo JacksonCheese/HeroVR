@@ -11,6 +11,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using Unity.XR.CoreUtils;
 
@@ -214,6 +215,7 @@ namespace HeroVR.Editor
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             root.AddComponent<Damageable>();
             root.AddComponent<RespawnOnDeath>();
+            root.AddComponent<NavMeshAgent>();
             root.AddComponent<TrainingBot>();
 
             PrefabUtility.SaveAsPrefabAsset(root, EnemyPrefabPath);
