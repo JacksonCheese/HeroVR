@@ -100,11 +100,13 @@ namespace HeroVR.EnvironmentTools
                 AssignFloat(serialized, "maxWebRange", 35f);
                 AssignFloat(serialized, "aimAssistRadius", .25f);
 
-                // Point straight along the controller. Pitch correction is left at 0 rather than
-                // guessed: -35 sent webs nearly vertical, and head-through-hand aimed at the floor
-                // because the hand sits below the head. The aim ray below makes the real direction
-                // visible so this can be judged instead of estimated.
-                AssignFloat(serialized, "aimPitchOffset", 0f);
+                // Positive tilts the aim down. The controller's forward axis sits higher than
+                // where the index finger points, so webs fired flat read as going out too high.
+                AssignFloat(serialized, "aimPitchOffset", 15f);
+
+                // Muzzle at the index finger rather than the tracked origin, which sits behind
+                // and above the trigger.
+                AssignVector3(serialized, "webOriginOffset", 0f, -.022f, .045f);
 
                 // Lighter than real gravity so falls hang and arcs read as superhero. Reel-in is
                 // raised to compensate, since weaker gravity puts less energy into the pendulum.
@@ -203,6 +205,19 @@ namespace HeroVR.EnvironmentTools
             }
 
             return count;
+        }
+
+        private static void AssignVector3(
+            SerializedObject serialized, string field, float x, float y, float z)
+        {
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[ApplySpiderPlayerKit] No serialized field named " + field);
+                return;
+            }
+
+            property.vector3Value = new Vector3(x, y, z);
         }
 
         private static void AssignBool(SerializedObject serialized, string field, bool value)

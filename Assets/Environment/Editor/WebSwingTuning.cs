@@ -15,17 +15,25 @@ namespace HeroVR.EnvironmentTools
     {
         private const string PlayerPrefabPath = "Assets/Prefabs/Characters/XRPlayer.prefab";
 
+        // Positive aims DOWN. Bracketed downward because the controller's forward axis sits above
+        // where the index finger points, so the useful range is on the down side of level.
         [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Level (0)")]
         public static void PitchLevel() => SetPitch(0f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Up a little (-10)")]
-        public static void PitchUpLittle() => SetPitch(-10f);
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down 10")]
+        public static void PitchDown10() => SetPitch(10f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Up more (-20)")]
-        public static void PitchUpMore() => SetPitch(-20f);
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down 15 (default)")]
+        public static void PitchDown15() => SetPitch(15f);
 
-        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down a little (+10)")]
-        public static void PitchDownLittle() => SetPitch(10f);
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down 22")]
+        public static void PitchDown22() => SetPitch(22f);
+
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Down 30")]
+        public static void PitchDown30() => SetPitch(30f);
+
+        [MenuItem("Tools/HeroVR/Environment/Web Aim/Pitch - Up 10")]
+        public static void PitchUp10() => SetPitch(-10f);
 
         [MenuItem("Tools/HeroVR/Environment/Web Aim/Aim Ray - Show")]
         public static void ShowAimRay() => SetBool("showAimRay", true, "aim ray on");

@@ -50,9 +50,15 @@ namespace HeroVR.Experimental
                  "starts snapping to things you did not aim at.")]
         [SerializeField, Range(0f, 1f)] private float aimAssistRadius = .25f;
         [SerializeField] private LayerMask anchorLayers = ~0;
-        [Tooltip("Negative tilts the aim upward. Leave at 0 to point exactly along the " +
-                 "controller, then adjust only if webs consistently land high or low.")]
-        [SerializeField, Range(-45f, 45f)] private float aimPitchOffset = 0f;
+        [Tooltip("Positive tilts the aim DOWN, negative tilts it UP. The controller's forward axis " +
+                 "sits higher than where the index finger points, so a positive value is normally " +
+                 "needed to line the web up with the trigger hand.")]
+        [SerializeField, Range(-45f, 45f)] private float aimPitchOffset = 15f;
+
+        [Tooltip("Where the web leaves the hand, local to the controller. The tracked origin sits " +
+                 "behind and above the trigger, so pushing forward (+Z) and down (-Y) puts the " +
+                 "web at the index finger instead of floating above the wrist.")]
+        [SerializeField] private Vector3 webOriginOffset = new Vector3(0f, -.022f, .045f);
 
         [Header("Swing feel")]
         [SerializeField] private float gravity = -13f;
@@ -177,7 +183,10 @@ namespace HeroVR.Experimental
 
             Transform visualOrigin = origin != null ? origin : aimSource;
             Vector3 direction = AimDirection(aimSource);
-            Vector3 rayStart = aimSource.position;
+
+            // Fire from the index finger rather than the tracked origin, so the web leaves the
+            // hand where the player expects it to.
+            Vector3 rayStart = WebOrigin(aimSource);
 
             RaycastHit hit;
             bool hitSomething = aimAssistRadius <= .001f
@@ -188,7 +197,7 @@ namespace HeroVR.Experimental
 
             if (!hitSomething || hit.transform.root == transform.root)
             {
-                ShowMiss(visualOrigin, rayStart + direction * maxWebRange);
+                ShowMiss(aimSource, rayStart + direction * maxWebRange);
                 return;
             }
 
@@ -196,12 +205,15 @@ namespace HeroVR.Experimental
             // the anchor to be meaningfully above the player.
             if (hit.point.y < transform.position.y + minAnchorHeightAboveFeet)
             {
-                ShowMiss(visualOrigin, hit.point);
+                ShowMiss(aimSource, hit.point);
                 return;
             }
 
             anchor = hit.point;
-            activeOrigin = visualOrigin;
+
+            // Track the aim transform, not the hand mesh, so the drawn web starts at the same
+            // muzzle point the raycast fired from.
+            activeOrigin = aimSource;
             ropeLength = Mathf.Max(minRopeLength, Vector3.Distance(transform.position, anchor));
 
             if (state == State.Grounded)
@@ -220,7 +232,14 @@ namespace HeroVR.Experimental
             if (Mathf.Abs(aimPitchOffset) < .01f)
                 return aimSource.forward;
 
+            // Positive rotates +Z toward -Y, i.e. downward.
             return Quaternion.AngleAxis(aimPitchOffset, aimSource.right) * aimSource.forward;
+        }
+
+        /// <summary>Muzzle point in world space: the index finger, not the tracked origin.</summary>
+        private Vector3 WebOrigin(Transform aimSource)
+        {
+            return aimSource.TransformPoint(webOriginOffset);
         }
 
         private void ShowMiss(Transform origin, Vector3 endPoint)
@@ -364,7 +383,7 @@ namespace HeroVR.Experimental
             if (state == State.Swinging && activeOrigin != null)
             {
                 web.enabled = true;
-                web.SetPosition(0, activeOrigin.position);
+                web.SetPosition(0, WebOrigin(activeOrigin));
                 web.SetPosition(1, anchor);
                 return;
             }
@@ -372,7 +391,7 @@ namespace HeroVR.Experimental
             if (Time.time < missUntil && missOrigin != null)
             {
                 web.enabled = true;
-                web.SetPosition(0, missOrigin.position);
+                web.SetPosition(0, WebOrigin(missOrigin));
                 web.SetPosition(1, missEnd);
                 return;
             }
@@ -388,10 +407,12 @@ namespace HeroVR.Experimental
                 return;
             }
 
-            Transform from = origin != null ? origin : aim;
+            // Ray must start at the muzzle and follow the same direction the raycast uses, or it
+            // shows the player something other than where the web will actually go.
+            Vector3 muzzle = WebOrigin(aim);
             ray.enabled = true;
-            ray.SetPosition(0, from.position);
-            ray.SetPosition(1, aim.position + AimDirection(aim) * aimRayLength);
+            ray.SetPosition(0, muzzle);
+            ray.SetPosition(1, muzzle + AimDirection(aim) * aimRayLength);
         }
 
         private void OnValidate()
