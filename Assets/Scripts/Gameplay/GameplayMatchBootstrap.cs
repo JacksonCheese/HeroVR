@@ -16,6 +16,8 @@ namespace HeroVR.Gameplay
         public GameObject SpawnedPlayer { get; private set; }
         public GameObject SpawnedEnemy { get; private set; }
         public bool HasStarted { get; private set; }
+        public GameObject PlayerPrefab => playerPrefab;
+        public GameObject TrainingEnemyPrefab => trainingEnemyPrefab;
 
         private void Start()
         {

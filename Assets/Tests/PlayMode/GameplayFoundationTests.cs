@@ -4,6 +4,8 @@ using HeroVR.Arena;
 using HeroVR.Combat;
 using HeroVR.Gameplay;
 using HeroVR.Heroes;
+using HeroVR.Input;
+using HeroVR.Movement;
 using HeroVR.Prototype;
 using HeroVR.XR;
 using HeroVR.Weapons;
@@ -194,6 +196,84 @@ namespace HeroVR.Tests
             Object.Destroy(spawned.gameObject);
             Object.Destroy(owner);
             Object.Destroy(projectileTemplate);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DesktopHeroController_PreservesConfiguredLightningLoadout()
+        {
+            GameObject actor = new GameObject("ConfiguredDesktopHero");
+            actor.SetActive(false);
+            actor.AddComponent<CharacterController>();
+            actor.AddComponent<Damageable>();
+            actor.AddComponent<RespawnOnDeath>();
+            actor.AddComponent<CharacterKnockbackReceiver>();
+            actor.AddComponent<DesktopCharacterMotor>();
+            HeroAbilityLoadout loadout = actor.AddComponent<HeroAbilityLoadout>();
+            actor.AddComponent<HeroUltimateCharge>();
+            MeleePunchAbility melee = actor.AddComponent<MeleePunchAbility>();
+            LightningAbility lightning = actor.AddComponent<LightningAbility>();
+            DashAbility dash = actor.AddComponent<DashAbility>();
+            RadialSmashAbility ultimate = actor.AddComponent<RadialSmashAbility>();
+            loadout.Configure(melee, lightning, dash, ultimate);
+
+            GameObject cameraObject = new GameObject("DesktopTestCamera");
+            cameraObject.transform.SetParent(actor.transform, false);
+            cameraObject.AddComponent<Camera>().enabled = false;
+            actor.AddComponent<DesktopHeroController>();
+            actor.SetActive(true);
+
+            yield return null;
+
+            Assert.That(loadout.PrimaryAttack, Is.SameAs(melee));
+            Assert.That(loadout.SecondaryAttack, Is.SameAs(lightning));
+            Assert.That(loadout.MovementAbility, Is.SameAs(dash));
+            Assert.That(loadout.UltimateAbility, Is.SameAs(ultimate));
+            Assert.That(actor.GetComponent<ProjectileCaster>(), Is.Null);
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DesktopWeaponAdapter_ThrowsAlongAimAndRequestsRecall()
+        {
+            GameObject ownerObject = new GameObject("DesktopWeaponOwner");
+            ownerObject.transform.position = Vector3.up * 50f;
+            Damageable owner = ownerObject.AddComponent<Damageable>();
+
+            GameObject anchorObject = new GameObject("DesktopWeaponAnchor");
+            anchorObject.transform.SetParent(ownerObject.transform, false);
+            anchorObject.transform.localPosition = Vector3.forward * 2f;
+
+            GameObject aimObject = new GameObject("DesktopWeaponAim");
+            aimObject.transform.SetParent(ownerObject.transform, false);
+            Vector3 expectedDirection = new Vector3(.6f, .25f, .75f).normalized;
+            aimObject.transform.rotation = Quaternion.LookRotation(expectedDirection);
+            TransformAimProvider aim = aimObject.AddComponent<TransformAimProvider>();
+            aim.Configure(aimObject.transform, aimObject.transform);
+
+            GameObject weaponObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Rigidbody body = weaponObject.AddComponent<Rigidbody>();
+            RecallableWeapon weapon = weaponObject.AddComponent<RecallableWeapon>();
+            weapon.SetHoldAnchor(anchorObject.transform);
+            weapon.ConfigureOwner(owner);
+            weapon.ConfigureMotion(1f, 30f, 20f, 50f);
+
+            DesktopWeaponInputAdapter adapter =
+                ownerObject.AddComponent<DesktopWeaponInputAdapter>();
+            adapter.Configure(default, default, weapon, aim, 12f);
+
+            Assert.That(adapter.TryThrow(), Is.True);
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Thrown));
+            Assert.That(
+                Vector3.Dot(body.linearVelocity.normalized, expectedDirection),
+                Is.GreaterThan(.999f));
+            Assert.That(adapter.TryRecall(), Is.True);
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Recalling));
+
+            Object.Destroy(ownerObject);
+            Object.Destroy(weaponObject);
             yield return null;
         }
 

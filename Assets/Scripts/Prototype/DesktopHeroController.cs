@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using HeroVR.Abilities;
 using HeroVR.Combat;
+using HeroVR.Input;
 using HeroVR.Movement;
 using HeroVR.Heroes;
 
@@ -25,6 +26,7 @@ namespace HeroVR.Prototype
         private Damageable opponentHealth;
         private HeroProfile heroProfile;
         private HeroUltimateCharge ultimateCharge;
+        private DesktopWeaponInputAdapter weaponInput;
 
         public Damageable Health => health;
         public HeroAbilityLoadout AbilityLoadout => abilityLoadout;
@@ -34,6 +36,7 @@ namespace HeroVR.Prototype
             health = GetComponent<Damageable>();
             heroProfile = GetComponent<HeroProfile>();
             ultimateCharge = GetComponent<HeroUltimateCharge>();
+            weaponInput = GetComponent<DesktopWeaponInputAdapter>();
             motor = motor != null ? motor : GetComponent<DesktopCharacterMotor>();
             abilityLoadout = abilityLoadout != null
                 ? abilityLoadout
@@ -169,39 +172,56 @@ namespace HeroVR.Prototype
 
         private void EnsureAbilityComponents()
         {
-            MeleePunchAbility punch = GetComponent<MeleePunchAbility>();
-            if (punch == null)
+            HeroAbility primary = abilityLoadout.PrimaryAttack;
+            if (primary == null)
             {
-                punch = gameObject.AddComponent<MeleePunchAbility>();
+                MeleePunchAbility punch = GetComponent<MeleePunchAbility>();
+                if (punch == null)
+                    punch = gameObject.AddComponent<MeleePunchAbility>();
                 punch.SetCooldown(.35f);
+                primary = punch;
             }
 
-            ProjectileCaster projectile = GetComponent<ProjectileCaster>();
-            if (projectile == null)
+            HeroAbility secondary = abilityLoadout.SecondaryAttack;
+            if (secondary == null)
             {
-                projectile = gameObject.AddComponent<ProjectileCaster>();
+                ProjectileCaster projectile = GetComponent<ProjectileCaster>();
+                if (projectile == null)
+                    projectile = gameObject.AddComponent<ProjectileCaster>();
                 projectile.SetCooldown(.55f);
+                secondary = projectile;
             }
 
-            DashAbility dash = GetComponent<DashAbility>();
-            if (dash == null)
+            HeroAbility movement = abilityLoadout.MovementAbility;
+            if (movement == null)
             {
-                dash = gameObject.AddComponent<DashAbility>();
+                DashAbility dash = GetComponent<DashAbility>();
+                if (dash == null)
+                    dash = gameObject.AddComponent<DashAbility>();
                 dash.SetCooldown(1.5f);
+                movement = dash;
             }
 
-            RadialSmashAbility smash = GetComponent<RadialSmashAbility>();
-            if (smash == null)
+            HeroAbility ultimate = abilityLoadout.UltimateAbility;
+            if (ultimate == null)
             {
-                smash = gameObject.AddComponent<RadialSmashAbility>();
+                RadialSmashAbility smash = GetComponent<RadialSmashAbility>();
+                if (smash == null)
+                    smash = gameObject.AddComponent<RadialSmashAbility>();
                 smash.SetCooldown(4f);
+                ultimate = smash;
             }
 
-            punch.SetAttackOrigin(viewCamera.transform);
-            projectile.SetSpawnPoint(projectileSpawnPoint);
-            dash.SetDirectionSource(transform);
-            smash.SetCenterPoint(transform);
-            abilityLoadout.Configure(punch, projectile, dash, smash);
+            if (primary is MeleePunchAbility configuredPunch)
+                configuredPunch.SetAttackOrigin(viewCamera.transform);
+            if (secondary is ProjectileCaster configuredProjectile)
+                configuredProjectile.SetSpawnPoint(projectileSpawnPoint);
+            if (movement is DashAbility configuredDash)
+                configuredDash.SetDirectionSource(transform);
+            if (ultimate is RadialSmashAbility configuredSmash)
+                configuredSmash.SetCenterPoint(transform);
+
+            abilityLoadout.Configure(primary, secondary, movement, ultimate);
         }
 
         private static void LockCursor()
@@ -221,7 +241,10 @@ namespace HeroVR.Prototype
             HeroDefinition definition = heroProfile != null
                 ? heroProfile.Definition
                 : null;
-            GUI.Box(new Rect(18, 18, 350, 190), $"{heroName.ToUpperInvariant()} — SANDBOX");
+            float panelHeight = weaponInput != null ? 215f : 190f;
+            GUI.Box(
+                new Rect(18, 18, 350, panelHeight),
+                $"{heroName.ToUpperInvariant()} — SANDBOX");
             GUI.Label(new Rect(32, 48, 300, 22),
                 $"Health: {Mathf.CeilToInt(health.CurrentHealth)}/{Mathf.CeilToInt(health.MaxHealth)}");
 
@@ -241,12 +264,16 @@ namespace HeroVR.Prototype
                     $"Enemy: {Mathf.CeilToInt(opponentHealth.CurrentHealth)}");
             }
 
-            GUI.Label(new Rect(32, 120, 320, 75),
+            string weaponControls = weaponInput != null
+                ? $"\nQ Throw {(definition != null ? definition.PrimaryName : "Weapon")} | R Recall"
+                : string.Empty;
+            GUI.Label(new Rect(32, 120, 320, weaponInput != null ? 100 : 75),
                 "WASD Move | Mouse Look | Space Super Jump\n" +
                 $"LMB {(definition != null ? definition.PrimaryName : "Punch")} | " +
                 $"RMB {(definition != null ? definition.SecondaryName : "Blast")}\n" +
                 $"E {(definition != null ? definition.UltimateName : "Ultimate")} (full charge)\n" +
-                $"Shift {(definition != null ? definition.MovementName : "Dash")} | Esc Release Mouse");
+                $"Shift {(definition != null ? definition.MovementName : "Dash")} | Esc Release Mouse" +
+                weaponControls);
             GUI.Label(
                 new Rect(Screen.width / 2f - 5f, Screen.height / 2f - 12f, 20f, 25f),
                 "+");

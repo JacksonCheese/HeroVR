@@ -150,6 +150,8 @@ The current custom code is organized under `Assets/Scripts`:
 - `XR/TrackedHandPhysicsFollower.cs` drives kinematic punch proxies and supplies tracked velocity to `PunchHitbox`.
 - `XR/XRWeaponInputAdapter.cs` maps grip release and recall input to a reusable
   weapon without implementing weapon or damage rules.
+- `Input/DesktopWeaponInputAdapter.cs` maps desktop throw/recall actions and an
+  `IAimProvider` direction to that same reusable weapon state machine.
 - `Weapons/RecallableWeapon.cs` owns the Held/Thrown/Recalling state machine,
   physical throw, visible return, hand attachment, and out-of-world failsafe.
 - `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
@@ -172,8 +174,13 @@ The first substantial XR hero is **Thor**, defined by
 `Assets/Heroes/Thor/Thor.asset` and assembled in
 `Assets/Prefabs/Characters/ThorXRPlayer.prefab`. Thor composes the shared movement,
 damage, loadout, lightning, velocity-melee, throwable-weapon, and recall systems.
+`Assets/Prefabs/Characters/ThorDesktopPlayer.prefab` uses the same Thor definition,
+abilities, weapon, damage rules, and match bootstrap contract with keyboard/mouse
+input adapters. `DesktopHeroController` must preserve a prefab's configured loadout
+rather than replacing non-projectile secondary abilities during `Awake`.
 `Assets/Scenes/Arenas/Arena_ThorVRTest.unity` is the gameplay-owned integrated
-playtest derived from the production graybox; the environment-owned
+VR playtest; `Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity` is its desktop
+counterpart. Both derive from the production graybox; the environment-owned
 `Arena_Graybox_01.unity` remains unchanged.
 
 `TrainingBot` uses `NavMeshAgent` only to obtain a throttled steering target.
@@ -227,6 +234,9 @@ Design local combat so it can later become server-authoritative, but do not add 
   Mjolnir, right B to recall it, and retains the shared movement/jump/dash/
   ultimate bindings. The held hammer follows the grip pose while lightning uses
   the independent pointer pose.
+- Desktop Thor retains standard WASD/mouse, Space jump, Shift dash, left-click
+  melee, right-click lightning, and E ultimate controls. Q throws Mjolnir along
+  the camera aim provider and R recalls it.
 - Android OpenXR has Oculus Touch Controller Profile and Meta Quest Support
   enabled. Preserve both settings as well as the enabled Standalone Oculus Touch
   profile and the Windows D3D11 PCVR configuration.

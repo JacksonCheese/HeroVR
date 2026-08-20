@@ -30,11 +30,11 @@ MonoBehaviour:
   chargePerDamageDealt: 1
   chargePerDamageTaken: 0.65
   melee:
-    cooldown: 0.32
-    damage: 24
-    range: 1.6
-    radius: 0.7
-    knockbackImpulse: 10
+    cooldown: 0.38
+    damage: 40
+    range: 1.7
+    radius: 0.75
+    knockbackImpulse: 16
   physicalPunch:
     minimumSpeed: 1.25
     damagePerSpeed: 9

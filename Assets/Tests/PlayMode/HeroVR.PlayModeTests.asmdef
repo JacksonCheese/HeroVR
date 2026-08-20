@@ -3,7 +3,8 @@
   "rootNamespace": "HeroVR.Tests",
   "references": [
     "HeroVR.Runtime",
-    "Unity.AI.Navigation"
+    "Unity.AI.Navigation",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

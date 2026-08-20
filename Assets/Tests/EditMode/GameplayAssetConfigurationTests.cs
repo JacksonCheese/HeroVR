@@ -5,6 +5,8 @@ using HeroVR.Abilities;
 using HeroVR.Arena;
 using HeroVR.Gameplay;
 using HeroVR.Heroes;
+using HeroVR.Input;
+using HeroVR.Prototype;
 using HeroVR.Weapons;
 using HeroVR.XR;
 using NUnit.Framework;
@@ -24,10 +26,14 @@ namespace HeroVR.Tests
             "Assets/Prefabs/Characters/XRPlayer.prefab";
         private const string ThorPlayerPath =
             "Assets/Prefabs/Characters/ThorXRPlayer.prefab";
+        private const string ThorDesktopPlayerPath =
+            "Assets/Prefabs/Characters/ThorDesktopPlayer.prefab";
         private const string TrainingEnemyPath =
             "Assets/Prefabs/Characters/TrainingEnemy.prefab";
         private const string ThorArenaPath =
             "Assets/Scenes/Arenas/Arena_ThorVRTest.unity";
+        private const string ThorDesktopArenaPath =
+            "Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity";
 
         [Test]
         public void XrPlayer_UsesRightPrimaryJumpAndPointerAimPose()
@@ -89,6 +95,35 @@ namespace HeroVR.Tests
         }
 
         [Test]
+        public void ThorDesktopPrefab_ReusesThorLoadoutWithDesktopAdapters()
+        {
+            GameObject prefab =
+                AssetDatabase.LoadAssetAtPath<GameObject>(ThorDesktopPlayerPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            HeroProfile profile = prefab.GetComponent<HeroProfile>();
+            HeroAbilityLoadout loadout = prefab.GetComponent<HeroAbilityLoadout>();
+            DesktopWeaponInputAdapter weaponInput =
+                prefab.GetComponent<DesktopWeaponInputAdapter>();
+            RecallableWeapon weapon =
+                prefab.GetComponentInChildren<RecallableWeapon>(true);
+
+            Assert.That(profile.Definition.HeroId, Is.EqualTo("thor"));
+            Assert.That(prefab.GetComponent<DesktopHeroController>(), Is.Not.Null);
+            Assert.That(prefab.GetComponent<XRHeroInputAdapter>(), Is.Null);
+            Assert.That(loadout.SecondaryAttack, Is.TypeOf<LightningAbility>());
+            Assert.That(prefab.GetComponent<ProjectileCaster>(), Is.Null);
+            Assert.That(weaponInput, Is.Not.Null);
+            Assert.That(weaponInput.Weapon, Is.SameAs(weapon));
+            Assert.That(
+                BindingPaths(weaponInput.ThrowInputAction),
+                Does.Contain("<Keyboard>/q"));
+            Assert.That(
+                BindingPaths(weaponInput.RecallInputAction),
+                Does.Contain("<Keyboard>/r"));
+        }
+
+        [Test]
         public void TrainingEnemy_PrefabAgentStartsDisabledForUnbakedScenes()
         {
             GameObject prefab =
@@ -129,6 +164,37 @@ namespace HeroVR.Tests
                 Assert.That(
                     GetSceneComponents<GameplayMatchBootstrap>(scene),
                     Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void ThorDesktopArena_SpawnsDesktopThorThroughGenericBootstrap()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ThorDesktopArenaPath,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                List<ArenaSpawnPoint> spawnPoints =
+                    GetSceneComponents<ArenaSpawnPoint>(scene);
+                List<GameplayMatchBootstrap> bootstraps =
+                    GetSceneComponents<GameplayMatchBootstrap>(scene);
+
+                Assert.That(spawnPoints, Has.Count.EqualTo(4));
+                Assert.That(bootstraps, Has.Count.EqualTo(1));
+                Assert.That(bootstraps[0].PlayerPrefab, Is.Not.Null);
+                Assert.That(
+                    bootstraps[0].PlayerPrefab.GetComponent<DesktopHeroController>(),
+                    Is.Not.Null);
+                Assert.That(
+                    bootstraps[0].PlayerPrefab.GetComponent<HeroProfile>()
+                        .Definition.HeroId,
+                    Is.EqualTo("thor"));
             }
             finally
             {

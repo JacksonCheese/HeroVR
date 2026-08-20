@@ -5,6 +5,11 @@ graybox. This gameplay-owned scene adds generic `ArenaSpawnPoint` components and
 Thor match bootstrap to the environment scene without changing
 `Arena_Graybox_01.unity`.
 
+For keyboard/mouse testing, open
+`Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity`. It uses the same Thor definition,
+combat values, lightning ability, Mjolnir prefab, throw/recall state machine, enemy,
+and generic arena spawn contract as the XR scene.
+
 ## Controls
 
 - Left stick: move
@@ -17,6 +22,19 @@ Thor match bootstrap to the environment scene without changing
 - Right stick click: God of Thunder ultimate when charged
 - Physical left-hand swing: unarmed punch
 - Physical Mjolnir swing: hammer melee
+
+## Desktop Controls
+
+- WASD: move
+- Mouse: aim/look
+- Space: jump
+- Left Shift: Thunder Dash
+- Left click: Mjolnir melee strike
+- Right click: aimed lightning
+- Q: throw Mjolnir along the camera aim
+- R: recall Mjolnir
+- E: God of Thunder ultimate when charged
+- Escape: release the mouse cursor; click the Game view to capture it again
 
 The energy-projectile XR aim fix is available on the shared `XRPlayer` prefab and
 uses the right controller pointer/aim pose. Thor replaces that ability slot with
