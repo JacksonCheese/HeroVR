@@ -97,7 +97,7 @@ namespace HeroVR.Abilities
             }
         }
 
-        private void OnDisable()
+        protected override void CancelActiveState()
         {
             StopDash();
         }

@@ -15,6 +15,7 @@ namespace HeroVR.Combat
         public bool IsDead => CurrentHealth <= 0f;
 
         public event Action<DamageInfo> Damaged;
+        public event Action<CombatImpact> ImpactReceived;
         public event Action<float, float> HealthChanged;
         public event Action Died;
 
@@ -37,6 +38,7 @@ namespace HeroVR.Combat
             CurrentHealth = Mathf.Max(0f, CurrentHealth - damageInfo.Amount);
             float appliedDamage = previousHealth - CurrentHealth;
             Damaged?.Invoke(damageInfo);
+            ImpactReceived?.Invoke(new CombatImpact(this, damageInfo, appliedDamage));
             NotifyHealthChanged();
             NotifyDamageDealt(damageInfo, appliedDamage);
 

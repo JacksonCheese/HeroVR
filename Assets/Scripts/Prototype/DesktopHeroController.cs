@@ -5,6 +5,7 @@ using HeroVR.Combat;
 using HeroVR.Input;
 using HeroVR.Movement;
 using HeroVR.Heroes;
+using HeroVR.Weapons;
 
 namespace HeroVR.Prototype
 {
@@ -27,6 +28,7 @@ namespace HeroVR.Prototype
         private HeroProfile heroProfile;
         private HeroUltimateCharge ultimateCharge;
         private DesktopWeaponInputAdapter weaponInput;
+        private ThorHammerFlight hammerFlight;
 
         public Damageable Health => health;
         public HeroAbilityLoadout AbilityLoadout => abilityLoadout;
@@ -37,6 +39,7 @@ namespace HeroVR.Prototype
             heroProfile = GetComponent<HeroProfile>();
             ultimateCharge = GetComponent<HeroUltimateCharge>();
             weaponInput = GetComponent<DesktopWeaponInputAdapter>();
+            hammerFlight = GetComponent<ThorHammerFlight>();
             motor = motor != null ? motor : GetComponent<DesktopCharacterMotor>();
             abilityLoadout = abilityLoadout != null
                 ? abilityLoadout
@@ -241,7 +244,9 @@ namespace HeroVR.Prototype
             HeroDefinition definition = heroProfile != null
                 ? heroProfile.Definition
                 : null;
-            float panelHeight = weaponInput != null ? 215f : 190f;
+            float panelHeight = hammerFlight != null
+                ? 285f
+                : weaponInput != null ? 215f : 190f;
             GUI.Box(
                 new Rect(18, 18, 350, panelHeight),
                 $"{heroName.ToUpperInvariant()} — SANDBOX");
@@ -274,6 +279,20 @@ namespace HeroVR.Prototype
                 $"E {(definition != null ? definition.UltimateName : "Ultimate")} (full charge)\n" +
                 $"Shift {(definition != null ? definition.MovementName : "Dash")} | Esc Release Mouse" +
                 weaponControls);
+
+            if (hammerFlight != null)
+            {
+                RecallableWeapon weapon = hammerFlight.Weapon;
+                string weaponState = weapon != null
+                    ? weapon.State.ToString()
+                    : "Missing";
+                GUI.Label(
+                    new Rect(32, 220, 320, 58),
+                    "Hold F to simulate hammer spin; tap G to launch along aim\n" +
+                    $"Hammer {weaponState} | Spin {hammerFlight.SpinMagnitude:F1} rad/s | " +
+                    $"Flight {(hammerFlight.IsHovering ? "HOVER" : hammerFlight.IsFlightActive ? "MOMENTUM" : "OFF")}\n" +
+                    $"Gravity {hammerFlight.CurrentGravityScale:F2} | Vertical {motor.Velocity.y:F1} m/s");
+            }
             GUI.Label(
                 new Rect(Screen.width / 2f - 5f, Screen.height / 2f - 12f, 20f, 25f),
                 "+");

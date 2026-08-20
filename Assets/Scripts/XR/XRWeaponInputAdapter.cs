@@ -7,7 +7,8 @@ namespace HeroVR.XR
 {
     [DefaultExecutionOrder(-90)]
     [DisallowMultipleComponent]
-    public sealed class XRWeaponInputAdapter : MonoBehaviour
+    public sealed class XRWeaponInputAdapter : MonoBehaviour,
+        IWeaponHoldStateSource
     {
         [SerializeField] private InputActionProperty gripAction;
         [SerializeField] private InputActionProperty recallAction;
@@ -21,6 +22,9 @@ namespace HeroVR.XR
         public RecallableWeapon Weapon => weapon;
         public InputAction GripInputAction => gripAction.action;
         public InputAction RecallInputAction => recallAction.action;
+        public bool IsWeaponHeld => wasGripPressed &&
+            weapon != null &&
+            weapon.State == RecallableWeaponState.Held;
 
         private void Awake()
         {
@@ -104,9 +108,13 @@ namespace HeroVR.XR
                 return;
 
             if (enabled)
+            {
                 action.Enable();
-            else
+            }
+            else if (actionProperty.reference == null)
+            {
                 action.Disable();
+            }
         }
     }
 }

@@ -22,6 +22,9 @@ and generic arena spawn contract as the XR scene.
 - Right stick click: God of Thunder ultimate when charged
 - Physical left-hand swing: unarmed punch
 - Physical Mjolnir swing: hammer melee
+- Hold right grip and spin Mjolnir rapidly: charge hammer-supported flight
+- Keep holding right grip, then make a distinct strong directional motion: launch Thor
+- Continue spinning Mjolnir while airborne: hover / limited lift
 
 ## Desktop Controls
 
@@ -35,6 +38,8 @@ and generic arena spawn contract as the XR scene.
 - R: recall Mjolnir
 - E: God of Thunder ultimate when charged
 - Escape: release the mouse cursor; click the Game view to capture it again
+- Hold F: simulate sustained Mjolnir spin in Editor/Development builds
+- While holding F, tap G: simulate a flight-launch motion along camera aim
 
 The energy-projectile XR aim fix is available on the shared `XRPlayer` prefab and
 uses the right controller pointer/aim pose. Thor replaces that ability slot with
@@ -50,6 +55,15 @@ lightning, which uses the same aim provider.
 6. Verify hammer melee, physical throw, visible recall, and lightning damage.
 7. Verify Thor cannot damage himself with Mjolnir, projectiles, or lightning.
 8. Recheck plaza and tower traversal, then death and respawn.
+9. Hold right grip and spin without a strong directional follow-through; verify Thor
+   does not launch prematurely.
+10. After charging spin, make a strong motion without releasing grip; verify Thor
+    launches while Mjolnir stays held.
+11. Continue spinning in the air, then slow below the deactivation threshold; verify
+    hover is stable and normal falling returns smoothly.
+12. Throw Mjolnir during hover; verify hover support ends immediately.
+13. Launch toward a wall and ceiling at conservative speed; verify the player collider
+    stops the corresponding flight velocity without camera/rig separation.
 
 For an Android headset build, include `Arena_ThorVRTest.unity` as the launch scene
 in the active Build Profile. The repository enables Android Oculus Touch Controller

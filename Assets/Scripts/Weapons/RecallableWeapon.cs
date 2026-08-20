@@ -29,6 +29,7 @@ namespace HeroVR.Weapons
         private Collider[] weaponColliders;
         private float currentRecallSpeed;
         private Vector3 previousHeldPosition;
+        private bool ownerDeathSubscribed;
 
         public RecallableWeaponState State { get; private set; } =
             RecallableWeaponState.Held;
@@ -50,11 +51,23 @@ namespace HeroVR.Weapons
             IgnoreOwnerCollisions();
         }
 
+        private void OnEnable()
+        {
+            SubscribeToOwnerDeath();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromOwnerDeath();
+        }
+
         public void ConfigureOwner(Damageable damageOwner)
         {
+            UnsubscribeFromOwnerDeath();
             owner = damageOwner;
             ApplyOwnerToHitboxes();
             IgnoreOwnerCollisions();
+            SubscribeToOwnerDeath();
         }
 
         public void SetHoldAnchor(Transform anchor)
@@ -237,6 +250,8 @@ namespace HeroVR.Weapons
             transform.SetParent(holdAnchor, false);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
+            body.position = holdAnchor.position;
+            body.rotation = holdAnchor.rotation;
             previousHeldPosition = holdAnchor.position;
         }
 
@@ -267,6 +282,24 @@ namespace HeroVR.Weapons
                     }
                 }
             }
+        }
+
+        private void SubscribeToOwnerDeath()
+        {
+            if (!isActiveAndEnabled || owner == null || ownerDeathSubscribed)
+                return;
+
+            owner.Died += ForceReturnToHand;
+            ownerDeathSubscribed = true;
+        }
+
+        private void UnsubscribeFromOwnerDeath()
+        {
+            if (owner == null || !ownerDeathSubscribed)
+                return;
+
+            owner.Died -= ForceReturnToHand;
+            ownerDeathSubscribed = false;
         }
 
         private void OnValidate()

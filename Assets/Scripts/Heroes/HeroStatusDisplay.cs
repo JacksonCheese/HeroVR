@@ -16,12 +16,15 @@ namespace HeroVR.Heroes
         private Damageable health;
         private HeroProfile profile;
         private HeroUltimateCharge ultimateCharge;
+        private ThorHammerFlight hammerFlight;
+        private float nextFlightRefreshTime;
 
         private void Awake()
         {
             health = GetComponent<Damageable>();
             profile = GetComponent<HeroProfile>();
             ultimateCharge = GetComponent<HeroUltimateCharge>();
+            hammerFlight = GetComponent<ThorHammerFlight>();
         }
 
         private void OnEnable()
@@ -39,6 +42,13 @@ namespace HeroVR.Heroes
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (hammerFlight != null && Time.unscaledTime >= nextFlightRefreshTime)
+            {
+                nextFlightRefreshTime = Time.unscaledTime + .1f;
+                Refresh();
+            }
+#endif
             if (statusText == null || viewer == null)
                 return;
 
@@ -82,6 +92,18 @@ namespace HeroVR.Heroes
 
             statusText.text =
                 $"{heroName}\nHP {Mathf.CeilToInt(health.CurrentHealth)}/{Mathf.CeilToInt(health.MaxHealth)}\n{ultimate}";
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (hammerFlight != null)
+            {
+                string flightState = hammerFlight.IsHovering
+                    ? "HOVER"
+                    : hammerFlight.IsFlightActive ? "MOMENTUM" : "OFF";
+                statusText.text +=
+                    $"\nSpin {hammerFlight.SpinMagnitude:F1} | {flightState}" +
+                    $"\nVY {hammerFlight.MovementVelocity.y:F1} | G {hammerFlight.CurrentGravityScale:F2}";
+            }
+#endif
 
             if (definition != null)
                 statusText.color = definition.SignatureColor;

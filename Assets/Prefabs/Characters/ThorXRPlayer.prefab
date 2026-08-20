@@ -1175,6 +1175,8 @@ GameObject:
   - component: {fileID: 3022619196787625870}
   - component: {fileID: 339585177635990638}
   - component: {fileID: 5095111167826931259}
+  - component: {fileID: 2284436051372935133}
+  - component: {fileID: 116163395374588015}
   m_Layer: 0
   m_Name: ThorXRPlayer
   m_TagString: Untagged
@@ -1650,6 +1652,38 @@ MonoBehaviour:
     m_Reference: {fileID: 0}
   weapon: {fileID: 7692014854067123781}
   throwVelocityProviderSource: {fileID: 521786272807521840}
+--- !u!114 &2284436051372935133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8174495386240760632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfe39340f45bf4f58bb92be63b9346c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Weapons.TransformWeaponMotionSource
+  motionTransform: {fileID: 8977416965341441902}
+  weapon: {fileID: 7692014854067123781}
+  holdStateSource: {fileID: 5095111167826931259}
+  smoothingTime: 0.12
+--- !u!114 &116163395374588015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8174495386240760632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d483c2e8a8a88474d8f3c0294678d6c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.ThorHammerFlight
+  settings: {fileID: 11400000, guid: 1d8bd2de1af20498eb48804174c897a9, type: 2}
+  weapon: {fileID: 7692014854067123781}
+  motionSourceComponent: {fileID: 2284436051372935133}
+  movementReceiverComponent: {fileID: 8665008884071634834}
 --- !u!1 &8782046023561354932
 GameObject:
   m_ObjectHideFlags: 0

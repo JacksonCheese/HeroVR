@@ -152,13 +152,21 @@ The current custom code is organized under `Assets/Scripts`:
   weapon without implementing weapon or damage rules.
 - `Input/DesktopWeaponInputAdapter.cs` maps desktop throw/recall actions and an
   `IAimProvider` direction to that same reusable weapon state machine.
+- `Input/DesktopThorFlightDebugAdapter.cs` supplies editor/development-only
+  synthetic Mjolnir motion without coupling Thor flight rules to keyboard input.
 - `Weapons/RecallableWeapon.cs` owns the Held/Thrown/Recalling state machine,
   physical throw, visible return, hand attachment, and out-of-world failsafe.
+- `Weapons/TransformWeaponMotionSource.cs` produces smoothed, device-independent
+  held-weapon motion samples from a tracked transform.
 - `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
 - `Heroes/HeroDefinition.cs` is the data source for hero identity, combat tuning, ability names, and ultimate-resource rules.
 - `Heroes/HeroProfile.cs` applies one definition to the existing reusable ability and combat components.
 - `Heroes/HeroUltimateCharge.cs` implements the optional resource gate used by charged ultimate abilities.
 - `Heroes/HeroStatusDisplay.cs` is the lightweight XR status presenter; it does not own gameplay state.
+- `Heroes/ThorHammerFlight.cs` interprets held Mjolnir spin and directional motion
+  into collision-aware launch, momentum, and hover modifiers.
+- `Heroes/ThorHammerFlightSettings.cs` is Thor's shared desktop/XR flight tuning
+  asset contract.
 
 The gameplay-owned validation scenes are `Assets/Scenes/Gameplay/GameplaySandbox.unity`
 and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. They are not production arenas.
@@ -182,6 +190,13 @@ rather than replacing non-projectile secondary abilities during `Awake`.
 VR playtest; `Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity` is its desktop
 counterpart. Both derive from the production graybox; the environment-owned
 `Arena_Graybox_01.unity` remains unchanged.
+
+Thor hammer flight consumes `IWeaponMotionSource`; it must not poll a Quest or
+desktop device directly. XR motion comes from the right controller transform while
+right grip remains held. Desktop Editor/Development testing holds F for synthetic
+spin and taps G for a launch pulse. Both player motors implement the additive
+`IFlightMovementReceiver` contract, but other heroes receive no flight behavior
+unless they explicitly compose a flight interpreter.
 
 `TrainingBot` uses `NavMeshAgent` only to obtain a throttled steering target.
 `NavMeshAgent.updatePosition`, `updateRotation`, and `updateUpAxis` remain disabled;
@@ -207,6 +222,9 @@ Temporary prototype code may remain intentionally coupled while v0.1 is being st
 - `Damageable` (or its deliberately evolved successor) remains the single source of truth for health and death state on a combatant.
 - Do not create parallel health implementations for the desktop player, XR player, AI, or network player.
 - Route damage through a consistent combat API. As requirements grow, include source/owner, instigator, team, hit point, direction, damage type, and knockback data in a shared hit description rather than expanding unrelated one-off methods.
+- `DamageInfo.ImpactStrength` and `Damageable.ImpactReceived` are lightweight,
+  presentation-agnostic feedback hooks. Sound, haptics, VFX, and reactions may
+  listen to them but must not become responsible for authoritative damage.
 - An area attack must damage each logical target at most once per activation, even when the target has multiple colliders.
 - Projectiles and attacks must track their owner or instigator so they can apply self-hit and team rules consistently.
 - Decide self-damage and friendly-fire behavior explicitly; do not let collider layout determine it accidentally.
@@ -236,7 +254,8 @@ Design local combat so it can later become server-authoritative, but do not add 
   the independent pointer pose.
 - Desktop Thor retains standard WASD/mouse, Space jump, Shift dash, left-click
   melee, right-click lightning, and E ultimate controls. Q throws Mjolnir along
-  the camera aim provider and R recalls it.
+  the camera aim provider and R recalls it. In Editor/Development builds, hold F
+  to simulate hammer spin and tap G after charging to launch along camera aim.
 - Android OpenXR has Oculus Touch Controller Profile and Meta Quest Support
   enabled. Preserve both settings as well as the enabled Standalone Oculus Touch
   profile and the Windows D3D11 PCVR configuration.
