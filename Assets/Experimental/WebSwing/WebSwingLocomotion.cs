@@ -68,6 +68,22 @@ namespace HeroVR.Experimental
         [SerializeField, Min(0f)] private float releaseBoost = 3.5f;
         [SerializeField, Min(0f)] private float attachSpeedCarry = 5f;
         [SerializeField, Min(0f)] private float maxSpeed = 30f;
+
+        [Tooltip("Speed injected along the arc the moment a web catches. Without this, attaching " +
+                 "from a standstill leaves you hanging still instead of swinging.")]
+        [SerializeField, Min(0f)] private float attachImpulse = 9f;
+
+        [Tooltip("Continuous push along the direction of travel while swinging. This is the " +
+                 "pumping that keeps arcs alive instead of decaying into a dead hang.")]
+        [SerializeField, Min(0f)] private float swingThrust = 9f;
+
+        [Tooltip("Keep control after touching down while still moving this fast, so a swing " +
+                 "runs out along the ground instead of stopping dead on contact.")]
+        [SerializeField, Min(0f)] private float groundedExitSpeed = 4.5f;
+
+        [Tooltip("How hard a landing slide scrubs speed. Too low and you skate forever, too high " +
+                 "and landings still feel like hitting a wall.")]
+        [SerializeField, Min(0f)] private float landingFriction = 14f;
         [Tooltip("Ignore anchors below this height difference so webs do not stick to the floor " +
                  "at your feet, which reads as the swing failing.")]
         [SerializeField] private float minAnchorHeightAboveFeet = 1.5f;
@@ -222,6 +238,16 @@ namespace HeroVR.Experimental
                 velocity = carry * attachSpeedCarry;
             }
 
+            // Kick off along the arc. Without this, catching a web while standing still left the
+            // player hanging motionless: gravity alone takes far too long to build a swing, which
+            // read as the web doing nothing.
+            Vector3 ropeUp = (anchor - transform.position).normalized;
+            Vector3 launchHint = head != null ? head.forward : transform.forward;
+            Vector3 tangent = Vector3.ProjectOnPlane(launchHint, ropeUp);
+
+            if (tangent.sqrMagnitude > .0001f)
+                velocity += tangent.normalized * attachImpulse;
+
             missUntil = 0f;
             TakeControl();
             state = State.Swinging;
@@ -256,6 +282,15 @@ namespace HeroVR.Experimental
             velocity += Vector3.up * gravity * dt;
             velocity += AirSteering() * (airControl * dt);
 
+            // Pump along the arc. A real pendulum bleeds energy every frame the rope constraint
+            // cancels radial velocity, so without a push along the direction of travel the swing
+            // decays into a dead hang after a couple of arcs.
+            Vector3 ropeUp = (anchor - transform.position).normalized;
+            Vector3 alongArc = Vector3.ProjectOnPlane(velocity, ropeUp);
+
+            if (alongArc.sqrMagnitude > .01f)
+                velocity += alongArc.normalized * (swingThrust * dt);
+
             ropeLength = Mathf.Max(minRopeLength, ropeLength - reelInSpeed * dt);
 
             Vector3 predicted = transform.position + velocity * dt;
@@ -278,7 +313,7 @@ namespace HeroVR.Experimental
             velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
             controller.Move(velocity * dt + correction);
 
-            if (controller.isGrounded && velocity.y <= 0f)
+            if (ShouldHandBackControl())
                 ReleaseControl();
         }
 
@@ -286,13 +321,28 @@ namespace HeroVR.Experimental
         {
             float dt = Time.deltaTime;
 
-            velocity += Vector3.up * gravity * dt;
+            if (controller.isGrounded && velocity.y < 0f)
+            {
+                // Sliding out a landing rather than falling. Stop gravity accumulating into a
+                // huge downward figure, and scrub horizontal speed so the slide actually ends
+                // and control returns instead of skating forever.
+                velocity.y = -2f;
+
+                Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
+                horizontal = Vector3.MoveTowards(horizontal, Vector3.zero, landingFriction * dt);
+                velocity = new Vector3(horizontal.x, velocity.y, horizontal.z);
+            }
+            else
+            {
+                velocity += Vector3.up * gravity * dt;
+            }
+
             velocity += AirSteering() * (airControl * dt);
             velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
 
             controller.Move(velocity * dt);
 
-            if (controller.isGrounded && velocity.y <= 0f)
+            if (ShouldHandBackControl())
                 ReleaseControl();
         }
 
@@ -304,6 +354,20 @@ namespace HeroVR.Experimental
             velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
             state = State.Airborne;
             activeOrigin = null;
+        }
+
+        /// <summary>
+        /// Landing alone is not enough to end a swing. Handing control straight back on the first
+        /// ground contact stopped the player dead the instant they clipped a rooftop, which killed
+        /// every long swing. Control is only returned once they are actually slow.
+        /// </summary>
+        private bool ShouldHandBackControl()
+        {
+            if (!controller.isGrounded || velocity.y > 0f)
+                return false;
+
+            Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
+            return horizontal.magnitude <= groundedExitSpeed;
         }
 
         private Vector3 AirSteering()

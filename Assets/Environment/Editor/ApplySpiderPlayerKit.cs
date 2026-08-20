@@ -118,6 +118,18 @@ namespace HeroVR.EnvironmentTools
                 AssignFloat(serialized, "releaseBoost", 3.5f);
                 AssignFloat(serialized, "attachSpeedCarry", 5f);
                 AssignFloat(serialized, "maxSpeed", 30f);
+
+                // Kick along the arc on attach, so catching a web while stationary swings instead
+                // of leaving the player hanging still.
+                AssignFloat(serialized, "attachImpulse", 9f);
+
+                // Continuous pump along the direction of travel. The rope constraint bleeds energy
+                // every frame it cancels radial velocity, so without this arcs decay to a dead hang.
+                AssignFloat(serialized, "swingThrust", 9f);
+
+                // Let a swing run out along the ground rather than stopping dead on first contact.
+                AssignFloat(serialized, "groundedExitSpeed", 4.5f);
+                AssignFloat(serialized, "landingFriction", 14f);
                 AssignFloat(serialized, "missVisualDuration", .35f);
                 AssignFloat(serialized, "minAnchorHeightAboveFeet", 1.5f);
 
