@@ -73,13 +73,15 @@ namespace HeroVR.EnvironmentTools
                 AssignFloat(serialized, "maxWebRange", 35f);
                 AssignFloat(serialized, "aimAssistRadius", .18f);
 
-                // 0 = ControllerForward, 1 = HeadThroughHand. Switch to 1 if aiming still feels
-                // wrong; it ignores controller orientation entirely.
-                AssignEnum(serialized, "aimMode", 0);
+                // HeadThroughHand by default. The ControllerForward path needs a pitch correction
+                // whose right value depends on how the player grips the controller: 0 aimed too
+                // low in testing and -35 sent webs nearly straight up. Casting from the head
+                // through the hand removes that variable entirely, since controller orientation
+                // stops mattering.
+                AssignEnum(serialized, "aimMode", 1);
 
-                // A Touch controller's forward runs down the handle, well below where the hand
-                // looks like it points, so the ray needs tilting up.
-                AssignFloat(serialized, "aimPitchOffset", -35f);
+                // Only used by ControllerForward. Kept mild after -35 proved far too steep.
+                AssignFloat(serialized, "aimPitchOffset", -12f);
 
                 // Lighter than real gravity so falls hang longer and arcs read as superhero
                 // rather than realistic. Reel-in is raised to keep swings from going limp now

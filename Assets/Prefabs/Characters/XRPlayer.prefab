@@ -455,13 +455,13 @@ MonoBehaviour:
   head: {fileID: 1587423102479437067}
   leftHand: {fileID: 557702837405239073}
   rightHand: {fileID: 39054608449809734}
-  aimMode: 0
+  aimMode: 1
   maxWebRange: 35
   aimAssistRadius: 0.18
   anchorLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  aimPitchOffset: -35
+  aimPitchOffset: -12
   gravity: -13
   reelInSpeed: 5.2
   minRopeLength: 2.5
