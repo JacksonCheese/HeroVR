@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.SceneManagement;
@@ -23,6 +24,8 @@ namespace HeroVR.Tests
             "Assets/Prefabs/Characters/XRPlayer.prefab";
         private const string ThorPlayerPath =
             "Assets/Prefabs/Characters/ThorXRPlayer.prefab";
+        private const string TrainingEnemyPath =
+            "Assets/Prefabs/Characters/TrainingEnemy.prefab";
         private const string ThorArenaPath =
             "Assets/Scenes/Arenas/Arena_ThorVRTest.unity";
 
@@ -83,6 +86,18 @@ namespace HeroVR.Tests
             Assert.That(
                 BindingPaths(weaponInput.RecallInputAction),
                 Does.Contain("<XRController>{RightHand}/{secondaryButton}"));
+        }
+
+        [Test]
+        public void TrainingEnemy_PrefabAgentStartsDisabledForUnbakedScenes()
+        {
+            GameObject prefab =
+                AssetDatabase.LoadAssetAtPath<GameObject>(TrainingEnemyPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            NavMeshAgent agent = prefab.GetComponent<NavMeshAgent>();
+            Assert.That(agent, Is.Not.Null);
+            Assert.That(agent.enabled, Is.False);
         }
 
         [Test]

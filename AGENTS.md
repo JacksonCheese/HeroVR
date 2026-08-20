@@ -180,7 +180,9 @@ playtest derived from the production graybox; the environment-owned
 `NavMeshAgent.updatePosition`, `updateRotation`, and `updateUpAxis` remain disabled;
 the bot's Rigidbody and `AddForce` continue to own movement so physics impulses are
 not overwritten. When no baked NavMesh is present, the bot deliberately falls back
-to its original direct steering so `GameplaySandbox` remains usable. Production
+to its original direct steering so `GameplaySandbox` remains usable. The prefab's
+agent starts disabled and `TrainingBot` enables it only after finding compatible
+baked data beneath the spawn; preserve this to avoid unbound-agent warnings. Production
 arenas must provide compatible baked NavMesh data before obstacle routing will work.
 
 Do not rebuild, delete, rename, or replace a working system merely to impose a preferred pattern. Before materially replacing one:

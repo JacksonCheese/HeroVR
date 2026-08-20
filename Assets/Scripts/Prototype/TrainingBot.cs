@@ -66,12 +66,18 @@ namespace HeroVR.Prototype
 
         private void OnEnable()
         {
+            TryEnableNavigationAgent();
             respawn.Respawned += InvalidatePath;
         }
 
         private void OnDisable()
         {
             respawn.Respawned -= InvalidatePath;
+
+            // Keep reactivation safe in scenes without baked data. Enabling an
+            // unbound agent makes Unity warn before Rigidbody fallback can run.
+            if (navMeshAgent != null && navMeshAgent.enabled)
+                navMeshAgent.enabled = false;
         }
 
         public void SetTarget(Damageable combatTarget)
@@ -156,6 +162,34 @@ namespace HeroVR.Prototype
             navMeshAgent.radius = .5f;
             navMeshAgent.height = 2f;
             navMeshAgent.baseOffset = -1f;
+        }
+
+        private void TryEnableNavigationAgent()
+        {
+            if (navMeshAgent == null || navMeshAgent.enabled)
+                return;
+
+            NavMeshQueryFilter filter = new NavMeshQueryFilter
+            {
+                agentTypeID = navMeshAgent.agentTypeID,
+                areaMask = navMeshAgent.areaMask
+            };
+            Vector3 agentBasePosition =
+                transform.position + Vector3.up * navMeshAgent.baseOffset;
+            float bindDistance = Mathf.Max(.1f, navMeshAgent.radius);
+
+            if (!NavMesh.SamplePosition(
+                    agentBasePosition,
+                    out _,
+                    bindDistance,
+                    filter))
+            {
+                return;
+            }
+
+            navMeshAgent.enabled = true;
+            if (!navMeshAgent.isOnNavMesh)
+                navMeshAgent.enabled = false;
         }
 
         private Vector3 GetSteeringDirection(Vector3 directToTarget)

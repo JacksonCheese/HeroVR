@@ -12,6 +12,39 @@ namespace HeroVR.Tests
     public sealed class TrainingBotNavigationTests
     {
         [UnityTest]
+        public IEnumerator TrainingBot_WithoutNavMeshUsesSilentDirectFallback()
+        {
+            GameObject targetObject = new GameObject("FallbackTarget");
+            targetObject.transform.position = new Vector3(0f, 50f, 6f);
+            Damageable target = targetObject.AddComponent<Damageable>();
+
+            GameObject botObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            botObject.name = "FallbackTrainingBot";
+            botObject.transform.position = Vector3.up * 50f;
+            botObject.SetActive(false);
+            botObject.AddComponent<Rigidbody>();
+            botObject.AddComponent<Damageable>();
+            botObject.AddComponent<RespawnOnDeath>();
+            NavMeshAgent agent = botObject.AddComponent<NavMeshAgent>();
+            agent.enabled = false;
+            TrainingBot bot = botObject.AddComponent<TrainingBot>();
+            botObject.SetActive(true);
+            bot.SetTarget(target);
+
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(agent.enabled, Is.False);
+            Assert.That(agent.isOnNavMesh, Is.False);
+            Assert.That(
+                Vector3.Dot(bot.CurrentSteeringDirection, Vector3.forward),
+                Is.GreaterThan(.99f));
+
+            Object.Destroy(botObject);
+            Object.Destroy(targetObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator TrainingBot_RoutesAroundBlockedDirectPath()
         {
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);

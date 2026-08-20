@@ -213,14 +213,17 @@ namespace HeroVR.Editor
             GameObject root = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             root.name = "TrainingEnemy";
             root.GetComponent<Renderer>().sharedMaterial = material;
+            root.SetActive(false);
 
             Rigidbody body = root.AddComponent<Rigidbody>();
             body.mass = 2.5f;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             root.AddComponent<Damageable>();
             root.AddComponent<RespawnOnDeath>();
-            root.AddComponent<NavMeshAgent>();
+            NavMeshAgent navigationAgent = root.AddComponent<NavMeshAgent>();
+            navigationAgent.enabled = false;
             root.AddComponent<TrainingBot>();
+            root.SetActive(true);
 
             PrefabUtility.SaveAsPrefabAsset(root, EnemyPrefabPath);
             Object.DestroyImmediate(root);

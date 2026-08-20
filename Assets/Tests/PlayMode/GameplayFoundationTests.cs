@@ -9,6 +9,7 @@ using HeroVR.XR;
 using HeroVR.Weapons;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.TestTools;
 
 namespace HeroVR.Tests
@@ -412,11 +413,14 @@ namespace HeroVR.Tests
 
             GameObject enemyPrefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemyPrefab.name = "EnemyPrefabSource";
+            enemyPrefab.SetActive(false);
             enemyPrefab.AddComponent<Rigidbody>();
             enemyPrefab.AddComponent<Damageable>();
             enemyPrefab.AddComponent<RespawnOnDeath>();
+            NavMeshAgent navigationAgent =
+                enemyPrefab.AddComponent<NavMeshAgent>();
+            navigationAgent.enabled = false;
             enemyPrefab.AddComponent<TrainingBot>();
-            enemyPrefab.SetActive(false);
 
             Vector3 playerPosition = new Vector3(-3f, 0f, -4f);
             Vector3 enemyPosition = new Vector3(4f, 1f, 3f);
