@@ -112,6 +112,9 @@ namespace HeroVR.EnvironmentTools
                 // raised to compensate, since weaker gravity puts less energy into the pendulum.
                 AssignFloat(serialized, "gravity", -13f);
                 AssignFloat(serialized, "reelInSpeed", 5.2f);
+                // Reeling scales with swing speed, so hanging still does not winch the
+                // player toward the anchor.
+                AssignFloat(serialized, "reelInFullSpeed", 12f);
 
                 AssignFloat(serialized, "minRopeLength", 2.5f);
                 AssignFloat(serialized, "airControl", 5f);
@@ -121,16 +124,16 @@ namespace HeroVR.EnvironmentTools
 
                 // Kick along the arc on attach, so catching a web while stationary swings instead
                 // of leaving the player hanging still.
-                AssignFloat(serialized, "attachImpulse", 9f);
+                AssignFloat(serialized, "attachImpulse", 2f);
 
                 // Automatic pump, kept low. It only offsets the energy the rope constraint bleeds
                 // off; the player's own arm should be supplying the speed.
                 AssignFloat(serialized, "swingThrust", 3.5f);
 
                 // Arm motion is the main drive. Throwing your hand along the arc accelerates you.
-                AssignFloat(serialized, "handMotionThrust", 3.2f);
+                AssignFloat(serialized, "handMotionThrust", 9f);
                 AssignFloat(serialized, "handMotionDeadzone", .35f);
-                AssignFloat(serialized, "maxHandMotionSpeed", 6f);
+                AssignFloat(serialized, "maxHandMotionSpeed", 8f);
 
                 // Let a swing run out along the ground rather than stopping dead on contact.
                 // Raised and softened after landings still killed momentum too readily.

@@ -63,6 +63,10 @@ namespace HeroVR.Experimental
         [Header("Swing feel")]
         [SerializeField] private float gravity = -13f;
         [SerializeField, Min(0f)] private float reelInSpeed = 5.2f;
+
+        [Tooltip("Swing speed at which reeling reaches full strength. Below this it scales down, " +
+                 "so hanging still does not winch you toward the anchor.")]
+        [SerializeField, Min(.1f)] private float reelInFullSpeed = 12f;
         [SerializeField, Min(1f)] private float minRopeLength = 2.5f;
         [SerializeField, Min(0f)] private float airControl = 5f;
         [SerializeField, Min(0f)] private float releaseBoost = 3.5f;
@@ -273,9 +277,9 @@ namespace HeroVR.Experimental
                 velocity = carry * attachSpeedCarry;
             }
 
-            // Kick off along the arc. Without this, catching a web while standing still left the
-            // player hanging motionless: gravity alone takes far too long to build a swing, which
-            // read as the web doing nothing.
+            // Just enough nudge to break a dead vertical hang so gravity has an arc to work with.
+            // A large kick here launched the player straight at the building they webbed, instead
+            // of letting them fall into a pendulum, which is what real swinging looks like.
             Vector3 ropeUp = (anchor - transform.position).normalized;
             Vector3 launchHint = head != null ? head.forward : transform.forward;
             Vector3 tangent = Vector3.ProjectOnPlane(launchHint, ropeUp);
@@ -333,7 +337,12 @@ namespace HeroVR.Experimental
             if (handMotion.sqrMagnitude > .0001f)
                 velocity += handMotion * (handMotionThrust * dt);
 
-            ropeLength = Mathf.Max(minRopeLength, ropeLength - reelInSpeed * dt);
+            // Reel in proportionally to how fast the swing is already going. A constant winch
+            // dragged a stationary player straight at the anchor, which is what made attaching
+            // from standstill feel like being yanked rather than swinging. Hanging still now
+            // barely reels at all; a fast arc tightens properly and lifts through the swing.
+            float speedFactor = Mathf.Clamp01(velocity.magnitude / reelInFullSpeed);
+            ropeLength = Mathf.Max(minRopeLength, ropeLength - reelInSpeed * speedFactor * dt);
 
             Vector3 predicted = transform.position + velocity * dt;
             Vector3 toAnchor = anchor - predicted;
