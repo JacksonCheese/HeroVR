@@ -51,9 +51,33 @@ namespace HeroVR.EnvironmentTools
 
                 Transform camera = FindDeep(root.transform, "Main Camera");
 
+                // Glove models hang off the tracked controllers, not the physics hands. The
+                // physics hands are scaled 0.18 (which would shrink a real-size model) and lag
+                // the true pose, so mounting the visual on the controller keeps what the player
+                // sees aligned with where a web actually fires.
+                int gloves = 0;
+                gloves += MountGlove(leftAim, "Assets/Environment/Heroes/Env_SpiderGlove_L.prefab");
+                gloves += MountGlove(rightAim, "Assets/Environment/Heroes/Env_SpiderGlove_R.prefab");
+
+                // With a proper glove shown, the blob mesh would just intersect it. Renderers are
+                // disabled rather than removed so this stays reversible, and so the physics hand
+                // keeps its collider and PunchHitbox.
+                int hidden = 0;
+                hidden += HideRenderers(leftHand);
+                hidden += HideRenderers(rightHand);
+
+                // Fallback: if the glove prefabs are missing, keep the old red blobs visible
+                // rather than leaving the player with no hands at all.
                 int recoloured = 0;
-                recoloured += Recolour(leftHand, glove);
-                recoloured += Recolour(rightHand, glove);
+                if (gloves == 0)
+                {
+                    recoloured += Recolour(leftHand, glove);
+                    recoloured += Recolour(rightHand, glove);
+                    ShowRenderers(leftHand);
+                    ShowRenderers(rightHand);
+                    Debug.LogWarning("[ApplySpiderPlayerKit] Glove prefabs not found; fell back " +
+                                     "to recolouring the placeholder hands. Run Build Spider Gloves.");
+                }
 
                 WebSwingLocomotion swing = root.GetComponent<WebSwingLocomotion>();
                 if (swing == null)
@@ -63,8 +87,11 @@ namespace HeroVR.EnvironmentTools
                 SerializedObject serialized = new SerializedObject(swing);
                 AssignReference(serialized, "leftAim", leftAim);
                 AssignReference(serialized, "rightAim", rightAim);
-                AssignReference(serialized, "leftHand", leftHand);
-                AssignReference(serialized, "rightHand", rightHand);
+                // Draw webs and aim rays from the controllers, which is where the glove models now
+                // sit. The physics hands trail slightly behind, so drawing from them would put
+                // the web visibly off the glove it is supposed to leave from.
+                AssignReference(serialized, "leftHand", leftAim);
+                AssignReference(serialized, "rightHand", rightAim);
                 AssignReference(serialized, "head", camera);
 
                 // Values already serialized on the prefab win over changed script defaults, so the
@@ -102,9 +129,10 @@ namespace HeroVR.EnvironmentTools
 
                 PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
 
-                Debug.Log("[ApplySpiderPlayerKit] Recoloured " + recoloured +
-                          " hand renderer(s) and wired WebSwingLocomotion. " +
-                          "aim=" + Name(leftAim) + "/" + Name(rightAim) +
+                Debug.Log("[ApplySpiderPlayerKit] gloves mounted=" + gloves +
+                          ", placeholder renderers hidden=" + hidden +
+                          ", recoloured fallback=" + recoloured +
+                          ". aim=" + Name(leftAim) + "/" + Name(rightAim) +
                           " draw=" + Name(leftHand) + "/" + Name(rightHand) +
                           " head=" + Name(camera));
             }
@@ -112,6 +140,54 @@ namespace HeroVR.EnvironmentTools
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        private const string GloveChildName = "SpiderGlove";
+
+        /// <summary>Mounts a glove prefab on a controller, replacing any previous one.</summary>
+        private static int MountGlove(Transform mount, string prefabPath)
+        {
+            if (mount == null)
+                return 0;
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+                return 0;
+
+            Transform existing = mount.Find(GloveChildName);
+            if (existing != null)
+                Object.DestroyImmediate(existing.gameObject);
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, mount);
+            instance.name = GloveChildName;
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            instance.transform.localScale = Vector3.one;
+            return 1;
+        }
+
+        private static int HideRenderers(Transform target)
+        {
+            if (target == null)
+                return 0;
+
+            int count = 0;
+            foreach (Renderer renderer in target.GetComponentsInChildren<Renderer>(true))
+            {
+                renderer.enabled = false;
+                count++;
+            }
+
+            return count;
+        }
+
+        private static void ShowRenderers(Transform target)
+        {
+            if (target == null)
+                return;
+
+            foreach (Renderer renderer in target.GetComponentsInChildren<Renderer>(true))
+                renderer.enabled = true;
         }
 
         private static int Recolour(Transform hand, Material material)
