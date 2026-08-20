@@ -39,8 +39,16 @@ namespace HeroVR.EnvironmentTools
 
             try
             {
+                // Physics hands are what the player sees, so the web is drawn from them.
                 Transform leftHand = FindDeep(root.transform, "LeftPhysicsHand");
                 Transform rightHand = FindDeep(root.transform, "RightPhysicsHand");
+
+                // Aiming uses the tracked controllers instead. The physics hands lag the real pose
+                // and rotate under physics, so webs fired from them went somewhere other than
+                // where the player was pointing.
+                Transform leftAim = FindDeep(root.transform, "LeftController");
+                Transform rightAim = FindDeep(root.transform, "RightController");
+
                 Transform camera = FindDeep(root.transform, "Main Camera");
 
                 int recoloured = 0;
@@ -53,16 +61,35 @@ namespace HeroVR.EnvironmentTools
 
                 // Private serialized fields, so assign through SerializedObject.
                 SerializedObject serialized = new SerializedObject(swing);
+                AssignReference(serialized, "leftAim", leftAim);
+                AssignReference(serialized, "rightAim", rightAim);
                 AssignReference(serialized, "leftHand", leftHand);
                 AssignReference(serialized, "rightHand", rightHand);
                 AssignReference(serialized, "head", camera);
+
+                // Values already serialized on the prefab win over changed script defaults, so the
+                // tuning has to be written explicitly or old values silently persist. This is the
+                // one place to retune the swing.
+                AssignFloat(serialized, "maxWebRange", 35f);
+                AssignFloat(serialized, "aimAssistRadius", .18f);
+                AssignFloat(serialized, "aimPitchOffset", 0f);
+                AssignFloat(serialized, "gravity", -20f);
+                AssignFloat(serialized, "reelInSpeed", 4.5f);
+                AssignFloat(serialized, "minRopeLength", 2.5f);
+                AssignFloat(serialized, "airControl", 5f);
+                AssignFloat(serialized, "releaseBoost", 3.5f);
+                AssignFloat(serialized, "attachSpeedCarry", 5f);
+                AssignFloat(serialized, "maxSpeed", 30f);
+                AssignFloat(serialized, "missVisualDuration", .18f);
+
                 serialized.ApplyModifiedPropertiesWithoutUndo();
 
                 PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
 
                 Debug.Log("[ApplySpiderPlayerKit] Recoloured " + recoloured +
                           " hand renderer(s) and wired WebSwingLocomotion. " +
-                          "left=" + Name(leftHand) + " right=" + Name(rightHand) +
+                          "aim=" + Name(leftAim) + "/" + Name(rightAim) +
+                          " draw=" + Name(leftHand) + "/" + Name(rightHand) +
                           " head=" + Name(camera));
             }
             finally
@@ -84,6 +111,18 @@ namespace HeroVR.EnvironmentTools
             }
 
             return count;
+        }
+
+        private static void AssignFloat(SerializedObject serialized, string field, float value)
+        {
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[ApplySpiderPlayerKit] No serialized field named " + field);
+                return;
+            }
+
+            property.floatValue = value;
         }
 
         private static void AssignReference(SerializedObject serialized, string field, Object value)

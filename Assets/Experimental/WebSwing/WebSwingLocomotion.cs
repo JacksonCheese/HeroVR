@@ -8,25 +8,20 @@ namespace HeroVR.Experimental
     /// <summary>
     /// Pendulum web-swinging for the wall-crawler.
     ///
-    /// EXPERIMENTAL / ADDITIVE. This deliberately lives outside Assets/Scripts and changes no
-    /// gameplay-owned file.
+    /// EXPERIMENTAL / ADDITIVE. Lives outside Assets/Scripts and changes no gameplay-owned file.
     ///
-    /// Why it works the way it does: XRCharacterMotor is sealed and its Update() recomputes
-    /// velocity from scratch every frame
-    ///     velocity = DesiredWorldMoveDirection * moveSpeed + up * verticalSpeed
-    /// then drives the CharacterController itself. There is no seam to add momentum through, so
-    /// any swing physics running alongside it would be overwritten each frame. Instead this
-    /// component disables the motor for the whole airborne phase, drives the CharacterController
-    /// directly, and re-enables the motor on landing. Two systems never move the controller at
-    /// once.
+    /// Why the motor is disabled rather than extended: XRCharacterMotor is sealed and its Update()
+    /// recomputes velocity from scratch every frame before driving the CharacterController itself,
+    /// so there is no seam to feed momentum through. This component takes the controller for the
+    /// whole airborne phase and hands it back on landing, so the two never fight. The proper fix is
+    /// an external-velocity API on XRCharacterMotor; that is a gameplay-side change.
     ///
-    /// The proper long-term fix is an external-velocity API on XRCharacterMotor (something like
-    /// AddExternalVelocity / SuspendLocomotion) so swinging is a normal contributor instead of a
-    /// takeover. That is a gameplay-side change and is why this is marked experimental.
+    /// Aiming comes from the tracked controller transforms, not the physics hands. The physics
+    /// hands lag behind the real pose and rotate under physics, so aiming from them made the web
+    /// fire somewhere other than where the player was pointing. The web is still drawn from the
+    /// physics hand, because that is the object the player actually sees.
     ///
-    /// Input uses the grip buttons, which the existing XRHeroInputAdapter leaves unbound - it uses
-    /// the sticks, triggers, primary buttons, and stick click. Bindings are declared here rather
-    /// than added to that adapter so no gameplay prefab or script needs editing.
+    /// Input uses the grip buttons, which XRHeroInputAdapter leaves free.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController))]
@@ -39,32 +34,41 @@ namespace HeroVR.Experimental
             Airborne
         }
 
-        [Header("Hands")]
-        [Tooltip("Anchor is aimed from these. Falls back to the head if left empty.")]
-        [SerializeField] private Transform leftHand;
-        [SerializeField] private Transform rightHand;
+        [Header("Aim sources (tracked controllers - accurate pose)")]
+        [SerializeField] private Transform leftAim;
+        [SerializeField] private Transform rightAim;
         [SerializeField] private Transform head;
 
-        [Header("Web")]
-        [SerializeField, Min(1f)] private float maxWebRange = 28f;
-        [Tooltip("Spherecast radius. Wider is far more forgiving to aim in VR.")]
-        [SerializeField, Min(.01f)] private float aimAssistRadius = .9f;
+        [Header("Web origins (physics hands - what the player sees)")]
+        [SerializeField] private Transform leftHand;
+        [SerializeField] private Transform rightHand;
+
+        [Header("Aiming")]
+        [SerializeField, Min(1f)] private float maxWebRange = 35f;
+        [Tooltip("0 is a pure raycast. Small values forgive shaky hands without snapping to " +
+                 "things you did not aim at. Above about 0.4 it starts to feel like autolock.")]
+        [SerializeField, Range(0f, 1f)] private float aimAssistRadius = .18f;
         [SerializeField] private LayerMask anchorLayers = ~0;
+        [Tooltip("Aim straight along the controller, or tilt it. 0 is straight forward.")]
+        [SerializeField, Range(-45f, 45f)] private float aimPitchOffset = 0f;
 
         [Header("Swing feel")]
-        [SerializeField] private float gravity = -22f;
-        [Tooltip("Rope shortens while held, which lifts you through the arc instead of just hanging.")]
-        [SerializeField, Min(0f)] private float reelInSpeed = 3.5f;
-        [SerializeField, Min(1f)] private float minRopeLength = 3f;
-        [Tooltip("Steering while swinging or airborne. Keep low so momentum stays king.")]
-        [SerializeField, Min(0f)] private float airControl = 4.5f;
-        [Tooltip("Extra push along your look direction the moment you let go.")]
-        [SerializeField, Min(0f)] private float releaseBoost = 2.5f;
-        [SerializeField, Min(0f)] private float maxSpeed = 26f;
+        [SerializeField] private float gravity = -20f;
+        [Tooltip("How fast the rope shortens while held. Higher lifts you harder through the arc.")]
+        [SerializeField, Min(0f)] private float reelInSpeed = 4.5f;
+        [SerializeField, Min(1f)] private float minRopeLength = 2.5f;
+        [Tooltip("Steering while swinging. Keep low or momentum stops mattering.")]
+        [SerializeField, Min(0f)] private float airControl = 5f;
+        [Tooltip("Push along your look direction the instant you let go.")]
+        [SerializeField, Min(0f)] private float releaseBoost = 3.5f;
+        [Tooltip("Speed kept when a swing starts, so attaching does not feel like a stop.")]
+        [SerializeField, Min(0f)] private float attachSpeedCarry = 5f;
+        [SerializeField, Min(0f)] private float maxSpeed = 30f;
 
-        [Header("Visuals")]
-        [SerializeField] private Material webMaterial;
-        [SerializeField, Min(.005f)] private float webThickness = .025f;
+        [Header("Web visual")]
+        [SerializeField, Min(.005f)] private float webThickness = .022f;
+        [Tooltip("How long a missed web stays visible before retracting.")]
+        [SerializeField, Min(0f)] private float missVisualDuration = .18f;
 
         private CharacterController controller;
         private XRCharacterMotor motor;
@@ -72,13 +76,19 @@ namespace HeroVR.Experimental
 
         private InputAction leftGrip;
         private InputAction rightGrip;
+        private bool leftWasHeld;
+        private bool rightWasHeld;
 
         private State state = State.Grounded;
         private Vector3 velocity;
         private Vector3 anchor;
         private float ropeLength;
-        private Transform activeHand;
+        private Transform activeOrigin;
+
         private LineRenderer web;
+        private Vector3 missEnd;
+        private Transform missOrigin;
+        private float missUntil;
 
         private void Awake()
         {
@@ -107,8 +117,6 @@ namespace HeroVR.Experimental
         {
             leftGrip.Disable();
             rightGrip.Disable();
-
-            // Never leave the player's normal locomotion switched off.
             ReleaseControl();
         }
 
@@ -118,20 +126,26 @@ namespace HeroVR.Experimental
             {
                 if (state != State.Grounded)
                     ReleaseControl();
+                UpdateWebVisual();
                 return;
             }
 
             bool leftHeld = leftGrip.IsPressed();
             bool rightHeld = rightGrip.IsPressed();
+
+            // Fire on the press edge so every squeeze produces a visible shot, hit or miss.
+            if (leftHeld && !leftWasHeld)
+                FireWeb(leftAim, leftHand);
+            if (rightHeld && !rightWasHeld)
+                FireWeb(rightAim, rightHand);
+
+            leftWasHeld = leftHeld;
+            rightWasHeld = rightHeld;
+
             bool anyHeld = leftHeld || rightHeld;
 
             switch (state)
             {
-                case State.Grounded:
-                    if (anyHeld)
-                        TryAttach(rightHeld ? rightHand : leftHand);
-                    break;
-
                 case State.Swinging:
                     if (!anyHeld)
                         Release();
@@ -140,9 +154,6 @@ namespace HeroVR.Experimental
                     break;
 
                 case State.Airborne:
-                    // Allow re-attaching mid-flight, which is what makes chained swings feel good.
-                    if (anyHeld && TryAttach(rightHeld ? rightHand : leftHand))
-                        break;
                     TickAirborne();
                     break;
             }
@@ -150,46 +161,62 @@ namespace HeroVR.Experimental
             UpdateWebVisual();
         }
 
-        private bool TryAttach(Transform hand)
+        /// <summary>
+        /// Always produces a shot. On a hit it anchors; on a miss it still draws a web out to
+        /// range and retracts, so a squeeze never feels like it was swallowed.
+        /// </summary>
+        private void FireWeb(Transform aim, Transform origin)
         {
-            Transform aimSource = hand != null ? hand : head;
+            Transform aimSource = aim != null ? aim : head;
             if (aimSource == null)
-                return false;
+                return;
 
-            // Ignore our own colliders so a web never sticks to the player.
-            if (!Physics.SphereCast(
-                    aimSource.position,
-                    aimAssistRadius,
-                    aimSource.forward,
-                    out RaycastHit hit,
-                    maxWebRange,
-                    anchorLayers,
-                    QueryTriggerInteraction.Ignore))
+            Transform visualOrigin = origin != null ? origin : aimSource;
+            Vector3 direction = AimDirection(aimSource);
+
+            bool hitSomething = aimAssistRadius <= .001f
+                ? Physics.Raycast(aimSource.position, direction, out RaycastHit hit,
+                    maxWebRange, anchorLayers, QueryTriggerInteraction.Ignore)
+                : Physics.SphereCast(aimSource.position, aimAssistRadius, direction, out hit,
+                    maxWebRange, anchorLayers, QueryTriggerInteraction.Ignore);
+
+            if (!hitSomething || hit.transform.root == transform.root)
             {
-                return false;
+                ShowMiss(visualOrigin, aimSource.position + direction * maxWebRange);
+                return;
             }
 
-            if (hit.transform.root == transform.root)
-                return false;
-
             anchor = hit.point;
-            activeHand = aimSource;
-            ropeLength = Vector3.Distance(transform.position, anchor);
+            activeOrigin = visualOrigin;
 
-            if (ropeLength < minRopeLength)
-                return false;
+            // Clamp rather than reject when the anchor is close. Rejecting made short-range
+            // shots silently do nothing, which read as the web failing to fire.
+            ropeLength = Mathf.Max(minRopeLength, Vector3.Distance(transform.position, anchor));
 
             if (state == State.Grounded)
             {
-                // Carry the walking speed into the swing so attaching does not feel like a stop.
-                velocity = motor != null
-                    ? motor.DesiredWorldMoveDirection * 4f
-                    : Vector3.zero;
+                Vector3 carry = motor != null ? motor.DesiredWorldMoveDirection : Vector3.zero;
+                velocity = carry * attachSpeedCarry;
             }
 
+            missUntil = 0f;
             TakeControl();
             state = State.Swinging;
-            return true;
+        }
+
+        private Vector3 AimDirection(Transform aimSource)
+        {
+            if (Mathf.Abs(aimPitchOffset) < .01f)
+                return aimSource.forward;
+
+            return Quaternion.AngleAxis(aimPitchOffset, aimSource.right) * aimSource.forward;
+        }
+
+        private void ShowMiss(Transform origin, Vector3 endPoint)
+        {
+            missOrigin = origin;
+            missEnd = endPoint;
+            missUntil = Time.time + missVisualDuration;
         }
 
         private void TickSwing()
@@ -199,7 +226,6 @@ namespace HeroVR.Experimental
             velocity += Vector3.up * gravity * dt;
             velocity += AirSteering() * (airControl * dt);
 
-            // Reeling in is what turns a dead hang into a rising arc.
             ropeLength = Mathf.Max(minRopeLength, ropeLength - reelInSpeed * dt);
 
             Vector3 predicted = transform.position + velocity * dt;
@@ -211,7 +237,7 @@ namespace HeroVR.Experimental
             {
                 Vector3 ropeDirection = toAnchor / distance;
 
-                // Rope can pull, never push: cancel only the outward radial velocity.
+                // A rope pulls but never pushes: cancel only outward radial velocity.
                 float outward = Vector3.Dot(velocity, -ropeDirection);
                 if (outward > 0f)
                     velocity += ropeDirection * outward;
@@ -247,7 +273,7 @@ namespace HeroVR.Experimental
 
             velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
             state = State.Airborne;
-            activeHand = null;
+            activeOrigin = null;
         }
 
         private Vector3 AirSteering()
@@ -260,7 +286,6 @@ namespace HeroVR.Experimental
             return steering;
         }
 
-        /// <summary>Suspends the normal motor so only one system drives the controller.</summary>
         private void TakeControl()
         {
             if (motor != null)
@@ -270,7 +295,7 @@ namespace HeroVR.Experimental
         private void ReleaseControl()
         {
             state = State.Grounded;
-            activeHand = null;
+            activeOrigin = null;
             velocity = Vector3.zero;
 
             if (motor != null)
@@ -291,29 +316,33 @@ namespace HeroVR.Experimental
             web.receiveShadows = false;
             web.enabled = false;
 
-            if (webMaterial != null)
-            {
-                web.sharedMaterial = webMaterial;
-            }
-            else
-            {
-                // Unlit so the web stays visible against both the sky and dark geometry.
-                Shader shader = Shader.Find("Unlit/Color") ?? Shader.Find("Standard");
-                Material generated = new Material(shader) { color = Color.white };
-                web.material = generated;
-            }
+            // Unlit so the web reads against both bright sky and dark geometry.
+            Shader shader = Shader.Find("Unlit/Color");
+            if (shader == null)
+                shader = Shader.Find("Standard");
+
+            web.material = new Material(shader) { color = Color.white };
         }
 
         private void UpdateWebVisual()
         {
-            bool visible = state == State.Swinging && activeHand != null;
-            web.enabled = visible;
-
-            if (!visible)
+            if (state == State.Swinging && activeOrigin != null)
+            {
+                web.enabled = true;
+                web.SetPosition(0, activeOrigin.position);
+                web.SetPosition(1, anchor);
                 return;
+            }
 
-            web.SetPosition(0, activeHand.position);
-            web.SetPosition(1, anchor);
+            if (Time.time < missUntil && missOrigin != null)
+            {
+                web.enabled = true;
+                web.SetPosition(0, missOrigin.position);
+                web.SetPosition(1, missEnd);
+                return;
+            }
+
+            web.enabled = false;
         }
 
         private void OnValidate()
