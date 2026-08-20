@@ -34,6 +34,23 @@ namespace HeroVR.Experimental
             Airborne
         }
 
+        public enum AimMode
+        {
+            /// <summary>
+            /// Point along the controller, corrected by <see cref="aimPitchOffset"/>. A Touch
+            /// controller's forward axis runs down the handle, well below where the hand appears
+            /// to point, so it needs tilting up to match player intent.
+            /// </summary>
+            ControllerForward = 0,
+
+            /// <summary>
+            /// Ray from the head through the hand and outward. Ignores controller orientation
+            /// entirely, so wrist angle cannot throw the aim off. Usually the more intuitive of
+            /// the two for distant targets.
+            /// </summary>
+            HeadThroughHand = 1
+        }
+
         [Header("Aim sources (tracked controllers - accurate pose)")]
         [SerializeField] private Transform leftAim;
         [SerializeField] private Transform rightAim;
@@ -44,13 +61,16 @@ namespace HeroVR.Experimental
         [SerializeField] private Transform rightHand;
 
         [Header("Aiming")]
+        [SerializeField] private AimMode aimMode = AimMode.ControllerForward;
         [SerializeField, Min(1f)] private float maxWebRange = 35f;
         [Tooltip("0 is a pure raycast. Small values forgive shaky hands without snapping to " +
                  "things you did not aim at. Above about 0.4 it starts to feel like autolock.")]
         [SerializeField, Range(0f, 1f)] private float aimAssistRadius = .18f;
         [SerializeField] private LayerMask anchorLayers = ~0;
-        [Tooltip("Aim straight along the controller, or tilt it. 0 is straight forward.")]
-        [SerializeField, Range(-45f, 45f)] private float aimPitchOffset = 0f;
+        [Tooltip("ControllerForward only. Negative tilts the aim upward. A Touch controller's " +
+                 "forward runs down the handle, so roughly -35 lines it up with where the hand " +
+                 "looks like it is pointing. Raise toward 0 if webs fire too high.")]
+        [SerializeField, Range(-60f, 30f)] private float aimPitchOffset = -35f;
 
         [Header("Swing feel")]
         [SerializeField] private float gravity = -20f;
@@ -172,7 +192,7 @@ namespace HeroVR.Experimental
                 return;
 
             Transform visualOrigin = origin != null ? origin : aimSource;
-            Vector3 direction = AimDirection(aimSource);
+            Vector3 direction = AimDirection(aimSource, visualOrigin);
 
             bool hitSomething = aimAssistRadius <= .001f
                 ? Physics.Raycast(aimSource.position, direction, out RaycastHit hit,
@@ -204,11 +224,22 @@ namespace HeroVR.Experimental
             state = State.Swinging;
         }
 
-        private Vector3 AimDirection(Transform aimSource)
+        private Vector3 AimDirection(Transform aimSource, Transform handVisual)
         {
+            if (aimMode == AimMode.HeadThroughHand && head != null)
+            {
+                Transform handPoint = handVisual != null ? handVisual : aimSource;
+                Vector3 through = handPoint.position - head.position;
+
+                // Degenerate if the hand is at the face; fall back to the controller.
+                if (through.sqrMagnitude > .0025f)
+                    return through.normalized;
+            }
+
             if (Mathf.Abs(aimPitchOffset) < .01f)
                 return aimSource.forward;
 
+            // Negative pitch tilts upward, correcting the Touch controller's handle-aligned axis.
             return Quaternion.AngleAxis(aimPitchOffset, aimSource.right) * aimSource.forward;
         }
 

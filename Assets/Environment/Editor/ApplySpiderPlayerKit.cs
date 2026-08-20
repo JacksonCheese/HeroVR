@@ -72,9 +72,21 @@ namespace HeroVR.EnvironmentTools
                 // one place to retune the swing.
                 AssignFloat(serialized, "maxWebRange", 35f);
                 AssignFloat(serialized, "aimAssistRadius", .18f);
-                AssignFloat(serialized, "aimPitchOffset", 0f);
-                AssignFloat(serialized, "gravity", -20f);
-                AssignFloat(serialized, "reelInSpeed", 4.5f);
+
+                // 0 = ControllerForward, 1 = HeadThroughHand. Switch to 1 if aiming still feels
+                // wrong; it ignores controller orientation entirely.
+                AssignEnum(serialized, "aimMode", 0);
+
+                // A Touch controller's forward runs down the handle, well below where the hand
+                // looks like it points, so the ray needs tilting up.
+                AssignFloat(serialized, "aimPitchOffset", -35f);
+
+                // Lighter than real gravity so falls hang longer and arcs read as superhero
+                // rather than realistic. Reel-in is raised to keep swings from going limp now
+                // that there is less energy in the pendulum.
+                AssignFloat(serialized, "gravity", -13f);
+                AssignFloat(serialized, "reelInSpeed", 5.2f);
+
                 AssignFloat(serialized, "minRopeLength", 2.5f);
                 AssignFloat(serialized, "airControl", 5f);
                 AssignFloat(serialized, "releaseBoost", 3.5f);
@@ -111,6 +123,18 @@ namespace HeroVR.EnvironmentTools
             }
 
             return count;
+        }
+
+        private static void AssignEnum(SerializedObject serialized, string field, int value)
+        {
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                Debug.LogWarning("[ApplySpiderPlayerKit] No serialized field named " + field);
+                return;
+            }
+
+            property.enumValueIndex = value;
         }
 
         private static void AssignFloat(SerializedObject serialized, string field, float value)
