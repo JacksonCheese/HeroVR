@@ -4,19 +4,20 @@ using UnityEngine;
 namespace HeroVR.EnvironmentTools
 {
     /// <summary>
-    /// Builds left and right wall-crawler glove models.
+    /// Builds left and right wall-crawler gloves posed in the web-shooting gesture.
     ///
-    /// The point is orientation, not decoration. The placeholder hands were featureless blobs, so
-    /// there was no way to read which way a hand was pointing - which made aiming webs guesswork.
-    /// Extended fingers, an offset thumb, and a wrist shooter give the hand a clear front, back,
-    /// and roll axis at a glance.
+    /// Modelled on how this reads in other VR web-swinging games: index and pinky extended,
+    /// middle and ring curled into the palm, a heavy grey cuff at the wrist, and a shooter on the
+    /// underside of the wrist with a nozzle pointing along +Z.
     ///
-    /// Built at real hand size and meant to hang off the tracked controller transform, not the
-    /// physics hand. The physics hand is scaled 0.18, which would shrink a real-size model, and
-    /// it lags slightly behind the true pose; hanging the visual off the controller keeps what the
-    /// player sees exactly aligned with where a web will actually fire.
+    /// The nozzle matters mechanically, not just decoratively. Webs fire along the controller's
+    /// forward axis, so a visible part of the glove pointing down that exact axis lets the player
+    /// see where a shot will go before firing - which flat fingers-forward hands did not convey.
     ///
-    /// Visual only: no colliders. The physics hand keeps its collider and PunchHitbox.
+    /// Built at real hand size and mounted on the tracked controller transform, not the physics
+    /// hand: the physics hand is scaled 0.18 and trails the true pose.
+    ///
+    /// Visual only, no colliders. The physics hand keeps its collider and PunchHitbox.
     /// </summary>
     public static class SpiderGloveBuilder
     {
@@ -24,7 +25,7 @@ namespace HeroVR.EnvironmentTools
         private const string HeroesFolder = "Assets/Environment/Heroes";
 
         private static Material suitRed;
-        private static Material suitBlue;
+        private static Material cuffGrey;
         private static Material detailBlack;
 
         [MenuItem("Tools/HeroVR/Environment/Build Spider Gloves")]
@@ -37,50 +38,60 @@ namespace HeroVR.EnvironmentTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log("[SpiderGloveBuilder] Wrote Env_SpiderGlove_L / _R to " + HeroesFolder +
-                      ". Apply with Apply Spider Player Kit.");
+            Debug.Log("[SpiderGloveBuilder] Wrote Env_SpiderGlove_L / _R. " +
+                      "Apply with Apply Spider Player Kit.");
         }
 
         private static void Build(bool isRight)
         {
             string suffix = isRight ? "R" : "L";
 
-            // Mirror the thumb across X so each glove reads as the correct hand.
-            float mirror = isRight ? 1f : -1f;
+            // Mirror across X so thumb and finger spread read as the correct hand.
+            float side = isRight ? 1f : -1f;
 
             GameObject root = new GameObject("Env_SpiderGlove_" + suffix);
 
-            // Cuff sits behind the palm, marking the wrist end so the hand has an obvious back.
-            Part("Cuff", root, new Vector3(0f, 0f, -.05f), new Vector3(.085f, .075f, .05f), suitBlue);
+            // --- Wrist -------------------------------------------------------------------
+            // Heavy grey cuff, the strongest silhouette cue for which end is the wrist.
+            Part("Cuff", root, new Vector3(0f, 0f, -.085f), new Vector3(.082f, .082f, .10f), cuffGrey);
+            Part("CuffLip", root, new Vector3(0f, 0f, -.032f), new Vector3(.09f, .09f, .022f), cuffGrey);
 
-            Part("Palm", root, new Vector3(0f, 0f, .012f), new Vector3(.088f, .042f, .10f), suitRed);
+            // Web shooter under the wrist, with a nozzle down +Z showing the firing direction.
+            Part("Shooter", root, new Vector3(0f, -.03f, -.005f), new Vector3(.04f, .026f, .055f), detailBlack);
+            Part("ShooterNozzle", root, new Vector3(0f, -.028f, .04f), new Vector3(.018f, .018f, .03f), detailBlack);
 
-            // Web shooter on the underside of the wrist: a strong roll cue, and the detail that
-            // makes the glove read as this character rather than a generic red hand.
-            Part("WebShooter", root, new Vector3(0f, -.028f, -.012f),
-                new Vector3(.042f, .022f, .055f), detailBlack);
+            // --- Palm --------------------------------------------------------------------
+            Part("Palm", root, new Vector3(0f, 0f, .022f), new Vector3(.086f, .042f, .092f), suitRed);
 
-            // Four fingers pointing along +Z. This is what makes aim direction readable.
-            for (int index = 0; index < 4; index++)
-            {
-                float x = -.031f + index * .021f;
-                float length = index == 0 || index == 3 ? .055f : .065f;
+            // Web line detail across the back of the hand.
+            Part("WebLine_A", root, new Vector3(0f, .023f, .012f), new Vector3(.078f, .004f, .005f), detailBlack);
+            Part("WebLine_B", root, new Vector3(0f, .023f, .046f), new Vector3(.066f, .004f, .005f), detailBlack);
+            Part("WebLine_C", root, new Vector3(0f, .023f, .03f), new Vector3(.005f, .004f, .08f), detailBlack);
 
-                Part("Finger_" + (index + 1), root,
-                    new Vector3(x, .004f, .062f + length * .5f),
-                    new Vector3(.018f, .021f, length), suitRed);
-            }
+            // --- Extended fingers: index and pinky ---------------------------------------
+            GameObject index = Part("Finger_Index", root,
+                new Vector3(side * -.028f, .006f, .105f), new Vector3(.02f, .021f, .08f), suitRed);
+            index.transform.localRotation = Quaternion.Euler(-6f, 0f, 0f);
 
-            // Thumb angled out to the side, breaking the left/right symmetry.
+            GameObject pinky = Part("Finger_Pinky", root,
+                new Vector3(side * .034f, -.002f, .092f), new Vector3(.017f, .018f, .062f), suitRed);
+            pinky.transform.localRotation = Quaternion.Euler(-4f, side * 9f, 0f);
+
+            // --- Curled fingers: middle and ring -----------------------------------------
+            // Tucked toward the palm, which is what makes the gesture read as "firing" rather
+            // than "pointing".
+            GameObject middle = Part("Finger_Middle", root,
+                new Vector3(side * -.009f, -.026f, .062f), new Vector3(.02f, .048f, .024f), suitRed);
+            middle.transform.localRotation = Quaternion.Euler(22f, 0f, 0f);
+
+            GameObject ring = Part("Finger_Ring", root,
+                new Vector3(side * .013f, -.026f, .058f), new Vector3(.019f, .044f, .023f), suitRed);
+            ring.transform.localRotation = Quaternion.Euler(22f, 0f, 0f);
+
+            // --- Thumb -------------------------------------------------------------------
             GameObject thumb = Part("Thumb", root,
-                new Vector3(mirror * .052f, -.004f, .022f),
-                new Vector3(.021f, .024f, .052f), suitRed);
-            thumb.transform.localRotation = Quaternion.Euler(0f, mirror * -32f, 0f);
-
-            // Dark strip along the back of the hand: distinguishes palm from back of hand, which
-            // is otherwise ambiguous on a symmetrical block.
-            Part("BackStripe", root, new Vector3(0f, .023f, .012f),
-                new Vector3(.03f, .006f, .085f), detailBlack);
+                new Vector3(side * -.05f, -.008f, .03f), new Vector3(.022f, .025f, .05f), suitRed);
+            thumb.transform.localRotation = Quaternion.Euler(0f, side * -34f, side * -12f);
 
             EnsureFolder(HeroesFolder);
             PrefabUtility.SaveAsPrefabAsset(root, HeroesFolder + "/Env_SpiderGlove_" + suffix + ".prefab");
@@ -101,7 +112,6 @@ namespace HeroVR.EnvironmentTools
             part.transform.localScale = scale;
             part.GetComponent<Renderer>().sharedMaterial = material;
 
-            // Collision belongs to the physics hand, not the visual.
             Object.DestroyImmediate(part.GetComponent<Collider>());
             return part;
         }
@@ -109,21 +119,26 @@ namespace HeroVR.EnvironmentTools
         private static void CreateMaterials()
         {
             suitRed = Load("Hero_SpiderRed", new Color(.72f, .11f, .13f));
-            suitBlue = Load("Hero_SpiderBlue", new Color(.09f, .15f, .44f));
+            cuffGrey = Load("Hero_SpiderCuff", new Color(.30f, .31f, .34f));
             detailBlack = Load("Hero_SpiderEmblem", new Color(.05f, .05f, .07f));
         }
 
-        private static Material Load(string materialName, Color fallbackColor)
+        private static Material Load(string materialName, Color color)
         {
             EnsureFolder(MaterialsFolder);
             string path = MaterialsFolder + "/" + materialName + ".mat";
 
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null)
-                return material;
+            if (material == null)
+            {
+                material = new Material(Shader.Find("Standard"));
+                AssetDatabase.CreateAsset(material, path);
+                material.color = color;
+                material.SetFloat("_Metallic", 0f);
+                material.SetFloat("_Glossiness", .2f);
+                EditorUtility.SetDirty(material);
+            }
 
-            material = new Material(Shader.Find("Standard")) { color = fallbackColor };
-            AssetDatabase.CreateAsset(material, path);
             return material;
         }
 
