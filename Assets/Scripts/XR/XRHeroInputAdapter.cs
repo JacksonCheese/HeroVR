@@ -28,6 +28,9 @@ namespace HeroVR.XR
         private HeroAbilityLoadout loadout;
         private bool turnLatched;
 
+        public InputAction JumpInputAction => jumpAction.action;
+        public InputAction UltimateInputAction => ultimateAction.action;
+
         private void Awake()
         {
             motor = GetComponent<XRCharacterMotor>();

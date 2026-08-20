@@ -154,6 +154,7 @@ MonoBehaviour:
   cooldown: 0.45
   projectilePrefab: {fileID: 2319156023187716121, guid: c118c7407c27f463d8005fb9fa962005, type: 3}
   spawnPoint: {fileID: 1458822630277428091}
+  aimProviderSource: {fileID: 1790123838234198892}
   projectileSpeed: 26
   projectileDamage: 24
   projectileLifetime: 5
@@ -173,6 +174,7 @@ MonoBehaviour:
   cooldown: 1.2
   directionSource: {fileID: 1587423102479437067}
   distance: 6
+  duration: 0.22
 --- !u!114 &1078907461649005969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -288,12 +290,12 @@ MonoBehaviour:
       m_Name: Move
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 09b5e391-f1d0-49e0-a706-0e792a7832e5
+      m_Id: 55c6afcc-b0e6-44b5-85b8-1cc51fb8ed6a
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 9c2ff94b-8bc1-4ca9-b6d0-607e132d9979
+        m_Id: 7bccdff1-22de-4b44-84b5-81e447e18b23
         m_Path: <XRController>{LeftHand}/{primary2DAxis}
         m_Interactions: 
         m_Processors: 
@@ -309,12 +311,12 @@ MonoBehaviour:
       m_Name: Turn
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 752d3a55-e46b-407e-8f1d-27a60aad8713
+      m_Id: cccb4733-a68c-4ac3-992d-90cdf38e370b
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: e2c411ba-9467-487d-a8f9-f9bc2094ba20
+        m_Id: 5838c44b-72bb-4b79-b9db-1b9d1f888c7d
         m_Path: <XRController>{RightHand}/{primary2DAxis}
         m_Interactions: 
         m_Processors: 
@@ -330,13 +332,13 @@ MonoBehaviour:
       m_Name: Jump
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: fb7f0ef8-7d32-45d5-b476-6bb382114080
+      m_Id: 7fabdb5c-372e-4eb0-a6b1-c5eb8d7f62ec
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 087ef294-ab7d-45b5-906b-06b2c36b33b6
-        m_Path: <XRController>{LeftHand}/{primaryButton}
+        m_Id: 83ac48d8-9b2c-4319-bacc-01540085ce39
+        m_Path: <XRController>{RightHand}/{primaryButton}
         m_Interactions: 
         m_Processors: 
         m_Groups: 
@@ -351,7 +353,7 @@ MonoBehaviour:
       m_Name: 
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: e9455227-8f4d-48aa-b70d-1c090fbf3c59
+      m_Id: cec47152-8d92-41ff-8e4c-e37c927c163e
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -364,12 +366,12 @@ MonoBehaviour:
       m_Name: Energy Projectile
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: 5b6e378b-b617-429c-ae8f-90a0992f0494
+      m_Id: 2527716b-af8c-4665-b28d-8ef1e12d2ce6
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: e66cbe0d-691c-4db4-8fab-553a5b636e84
+        m_Id: 450ab443-4764-437f-8139-068371ee3ce5
         m_Path: <XRController>{RightHand}/{triggerButton}
         m_Interactions: 
         m_Processors: 
@@ -385,12 +387,12 @@ MonoBehaviour:
       m_Name: Dash
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: c84d2235-825c-4407-aea5-6fb72d5825b8
+      m_Id: b2a1ffbd-77e0-452c-94fb-b561ef91ed37
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: e12cafe7-46f2-4128-8154-038976d406be
+        m_Id: c2fa886c-c2c6-4c89-a307-fa9f02fe3ea5
         m_Path: <XRController>{LeftHand}/{primary2DAxisClick}
         m_Interactions: 
         m_Processors: 
@@ -406,13 +408,13 @@ MonoBehaviour:
       m_Name: Super Smash
       m_Type: 1
       m_ExpectedControlType: Button
-      m_Id: 15b8b563-6c7e-43db-b30d-28fe8c6e9c5e
+      m_Id: 8d64f47f-1a62-4e73-aa3b-e8994ab69888
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: f1840297-37cc-49be-86ad-656d50d0ac19
-        m_Path: <XRController>{RightHand}/{primaryButton}
+        m_Id: 91cca95d-82de-4141-9964-09976b8ebdcb
+        m_Path: <XRController>{RightHand}/{primary2DAxisClick}
         m_Interactions: 
         m_Processors: 
         m_Groups: 
@@ -551,12 +553,12 @@ MonoBehaviour:
       m_Name: Head Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: 517cb34c-6630-4a33-84a5-c2e9757ab83c
+      m_Id: 725f9af6-75bd-4ce6-810b-adf6971e2080
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: cd0f179e-70a8-4f52-b089-f338ee172a6a
+        m_Id: 1fbc4ce7-0430-45c9-a980-0b71115e9b95
         m_Path: <XRHMD>/centerEyePosition
         m_Interactions: 
         m_Processors: 
@@ -572,12 +574,12 @@ MonoBehaviour:
       m_Name: Head Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: 7f8e635e-2af5-47d4-885d-746e962e097f
+      m_Id: 3f3d139f-f204-4db6-9388-c0703b6da892
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: e03bb06d-b9fd-42c6-a710-ca1dd9a8a6f8
+        m_Id: 1acb52c2-360c-48b0-bd99-3c5f4d85d63f
         m_Path: <XRHMD>/centerEyeRotation
         m_Interactions: 
         m_Processors: 
@@ -593,12 +595,12 @@ MonoBehaviour:
       m_Name: Head Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: 438d3455-03c3-414e-b04d-b1e904e4086b
+      m_Id: 1f0dad5e-ea11-4420-a759-220330f0eece
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 84eefb9d-2c8d-474b-9eb2-cfe9c30af832
+        m_Id: bc2505e2-b12c-46b7-80d9-8f51da86257d
         m_Path: <XRHMD>/trackingState
         m_Interactions: 
         m_Processors: 
@@ -612,7 +614,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 6dc427fd-2351-416b-b767-63923bb66a55
+    m_Id: f458c2fd-e60e-401d-8b88-5d1d6b508395
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -622,7 +624,138 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: e49054fa-f96c-4d18-b6f4-804f959436a0
+    m_Id: eae87fab-e2bd-4758-87f3-0fe780185d40
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+    m_Priority: 0
+--- !u!1 &890159014834364696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5696283088826145345}
+  - component: {fileID: 6800063401849905104}
+  m_Layer: 0
+  m_Name: RightAim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5696283088826145345
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890159014834364696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.2, y: 1.3, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1458822630277428091}
+  m_Father: {fileID: 4807957823974442145}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6800063401849905104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890159014834364696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.XR.TrackedPoseDriver
+  m_TrackingType: 0
+  m_UpdateType: 0
+  m_IgnoreTrackingState: 0
+  m_PositionInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: RightAim Position
+      m_Type: 2
+      m_ExpectedControlType: Vector3
+      m_Id: 98cd33f7-b02f-4037-89d7-0b0b49733709
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 19b03e5a-caf2-4ab8-8900-d0e5223b9dec
+        m_Path: <XRController>{RightHand}/pointerPosition
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: RightAim Position
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  m_RotationInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: RightAim Rotation
+      m_Type: 2
+      m_ExpectedControlType: Quaternion
+      m_Id: 20e5953c-aed9-4a88-8023-e79e5aeb1a56
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: d83c4254-9cce-46e5-952d-4caffccf9ba8
+        m_Path: <XRController>{RightHand}/pointerRotation
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: RightAim Rotation
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  m_TrackingStateInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: RightAim Tracking State
+      m_Type: 2
+      m_ExpectedControlType: Integer
+      m_Id: abe6c6d8-e9f2-420a-af6f-805d00c1b667
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: be1240ea-1520-4046-86b6-6416ee568578
+        m_Path: <XRController>{RightHand}/trackingState
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: RightAim Tracking State
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  m_PositionAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 351550b4-3f7f-41cd-9047-b7e0b76ee369
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+    m_Priority: 0
+  m_RotationAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 8c66581d-debd-4079-b64e-e12d24e99fe0
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -801,6 +934,7 @@ MonoBehaviour:
   maxDamage: 32
   knockbackMultiplier: 2
   maxKnockbackImpulse: 14
+  contactCooldown: 0.2
 --- !u!1 &2516721701774036426
 GameObject:
   m_ObjectHideFlags: 0
@@ -830,8 +964,7 @@ Transform:
   m_LocalPosition: {x: 0.2, y: 1.3, z: 0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1458822630277428091}
+  m_Children: []
   m_Father: {fileID: 4807957823974442145}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8715333677610429252
@@ -855,12 +988,12 @@ MonoBehaviour:
       m_Name: RightController Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: e31b70e4-44cd-4140-8fca-d48400fcc19c
+      m_Id: e3d5e0ab-6527-4294-b969-c78c749c8dcc
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 15d0b24e-5fa3-4bbc-a5cb-e401cdc93674
+        m_Id: f70c7dc5-3e25-42ac-8403-5544bcc5cc77
         m_Path: <XRController>{RightHand}/devicePosition
         m_Interactions: 
         m_Processors: 
@@ -876,12 +1009,12 @@ MonoBehaviour:
       m_Name: RightController Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: 028a2ec6-fd83-4b7e-a98b-44c0a3e55d42
+      m_Id: 9eddf523-4267-479b-8619-ad836cc0d942
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: bed85bae-cede-49a8-821e-c1bfda8f017f
+        m_Id: 3518fd79-be9c-4013-bd3c-ea996fbb0198
         m_Path: <XRController>{RightHand}/deviceRotation
         m_Interactions: 
         m_Processors: 
@@ -897,12 +1030,12 @@ MonoBehaviour:
       m_Name: RightController Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: 76921e69-7e92-4eef-8b1b-92f5ac97d871
+      m_Id: fbb544e3-105b-43b9-a7a6-bd08719a789b
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 8d12cac2-1b14-4258-9eaf-97fceedd80a0
+        m_Id: c9cb2959-2993-4260-b8c1-3bd76adc94cf
         m_Path: <XRController>{RightHand}/trackingState
         m_Interactions: 
         m_Processors: 
@@ -916,7 +1049,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: ca1b8bff-de0b-4cf6-b8ed-72b799f9e856
+    m_Id: e8c4a673-58cd-43dc-821f-42039238dd08
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -926,7 +1059,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 346cb4cf-0bec-4cc7-b233-da453b3c05c5
+    m_Id: 596863f9-3c88-444b-a4d0-b4fc81596a9a
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -941,6 +1074,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1458822630277428091}
+  - component: {fileID: 1790123838234198892}
   m_Layer: 0
   m_Name: ProjectileSpawn
   m_TagString: Untagged
@@ -961,8 +1095,22 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5991382797860548578}
+  m_Father: {fileID: 5696283088826145345}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1790123838234198892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3385406547374106963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a0f708f01a86429ea41e0c1432291c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.TransformAimProvider
+  originTransform: {fileID: 1458822630277428091}
+  directionTransform: {fileID: 5696283088826145345}
 --- !u!1 &4547648971488537734
 GameObject:
   m_ObjectHideFlags: 0
@@ -1017,12 +1165,12 @@ MonoBehaviour:
       m_Name: LeftController Position
       m_Type: 2
       m_ExpectedControlType: Vector3
-      m_Id: 69b6a5b8-cb4d-4c48-9b57-f7fc0a5b12bd
+      m_Id: 1604a3cb-fe02-4f7c-9521-c8edf0f4b6b4
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 5a6ebd47-46f6-48cb-b9a9-e0b7ba57087e
+        m_Id: 437c52c5-ca01-43bd-9ffc-4a9ec9e6bb45
         m_Path: <XRController>{LeftHand}/devicePosition
         m_Interactions: 
         m_Processors: 
@@ -1038,12 +1186,12 @@ MonoBehaviour:
       m_Name: LeftController Rotation
       m_Type: 2
       m_ExpectedControlType: Quaternion
-      m_Id: 8dc4bdd6-b62d-4163-b7b1-f849219597af
+      m_Id: 32838a75-200e-445f-9922-52967a558cd0
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 21e82938-1de2-426d-ab2a-8fad5bbc7591
+        m_Id: 786c5c6a-4ec7-46ab-82cc-cea17705c2bc
         m_Path: <XRController>{LeftHand}/deviceRotation
         m_Interactions: 
         m_Processors: 
@@ -1059,12 +1207,12 @@ MonoBehaviour:
       m_Name: LeftController Tracking State
       m_Type: 2
       m_ExpectedControlType: Integer
-      m_Id: 63d8b435-9ddf-4ee0-9b8f-6c7894c033a2
+      m_Id: 68054ccc-6c46-4f26-b536-5a1b4183a57e
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings:
       - m_Name: 
-        m_Id: 5a68a409-e00e-4a5a-853d-7345f8b31bee
+        m_Id: 18b490b4-ece5-4788-9972-83967229c5b6
         m_Path: <XRController>{LeftHand}/trackingState
         m_Interactions: 
         m_Processors: 
@@ -1078,7 +1226,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: ee008236-8535-4229-aaea-1a2a95fbd3e4
+    m_Id: ac1cb131-d614-45f1-8bec-a35507b94802
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -1088,7 +1236,7 @@ MonoBehaviour:
     m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 31938dc5-1ae5-45d9-84e6-ea958c382a7b
+    m_Id: 7296b201-6ca8-400a-bfdf-93b2a4888c62
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -1267,6 +1415,7 @@ MonoBehaviour:
   maxDamage: 32
   knockbackMultiplier: 2
   maxKnockbackImpulse: 14
+  contactCooldown: 0.2
 --- !u!1 &8287948758104038136
 GameObject:
   m_ObjectHideFlags: 0
@@ -1299,6 +1448,7 @@ Transform:
   - {fileID: 1587423102479437067}
   - {fileID: 4452982280077260055}
   - {fileID: 5991382797860548578}
+  - {fileID: 5696283088826145345}
   m_Father: {fileID: 3216069940816557541}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8336136220343234386

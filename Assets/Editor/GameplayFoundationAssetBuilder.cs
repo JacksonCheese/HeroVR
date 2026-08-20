@@ -179,12 +179,16 @@ namespace HeroVR.Editor
             GameObject spawnObject = new GameObject("ProjectileSpawn");
             spawnObject.transform.SetParent(cameraObject.transform, false);
             spawnObject.transform.localPosition = Vector3.forward * 1.1f;
+            TransformAimProvider aimProvider =
+                spawnObject.AddComponent<TransformAimProvider>();
+            aimProvider.Configure(spawnObject.transform, cameraObject.transform);
 
             punch.SetAttackOrigin(cameraObject.transform);
             projectile.Configure(
                 projectilePrefab,
                 spawnObject.transform,
                 heroDefinition.Projectile.speed);
+            projectile.SetAimProvider(aimProvider);
             dash.SetDirectionSource(root.transform);
             smash.SetCenterPoint(root.transform);
             loadout.Configure(punch, projectile, dash, smash);
@@ -280,9 +284,20 @@ namespace HeroVR.Editor
                 "RightHand",
                 new Vector3(.2f, 1.3f, .25f));
 
+            Transform rightAim = CreateTrackedPoseObject(
+                cameraOffset.transform,
+                "RightAim",
+                new Vector3(.2f, 1.3f, .25f),
+                "<XRController>{RightHand}/pointerPosition",
+                "<XRController>{RightHand}/pointerRotation",
+                "<XRController>{RightHand}/trackingState");
+
             GameObject spawnObject = new GameObject("ProjectileSpawn");
-            spawnObject.transform.SetParent(rightController, false);
+            spawnObject.transform.SetParent(rightAim, false);
             spawnObject.transform.localPosition = Vector3.forward * .12f;
+            TransformAimProvider aimProvider =
+                spawnObject.AddComponent<TransformAimProvider>();
+            aimProvider.Configure(spawnObject.transform, rightAim);
 
             CreatePhysicsHand(
                 root.transform,
@@ -306,6 +321,7 @@ namespace HeroVR.Editor
                 projectilePrefab,
                 spawnObject.transform,
                 heroDefinition.Projectile.speed);
+            projectile.SetAimProvider(aimProvider);
             dash.SetDirectionSource(cameraObject.transform);
             smash.SetCenterPoint(root.transform);
             loadout.Configure(punch, projectile, dash, smash);
@@ -326,7 +342,7 @@ namespace HeroVR.Editor
                     "Jump",
                     InputActionType.Button,
                     "Button",
-                    "<XRController>{LeftHand}/{primaryButton}"),
+                    "<XRController>{RightHand}/{primaryButton}"),
                 default,
                 CreateInputAction(
                     "Energy Projectile",
@@ -342,7 +358,7 @@ namespace HeroVR.Editor
                     "Super Smash",
                     InputActionType.Button,
                     "Button",
-                    "<XRController>{RightHand}/{primaryButton}"));
+                    "<XRController>{RightHand}/{primary2DAxisClick}"));
 
             CreateWristStatusDisplay(
                 root,
@@ -362,17 +378,34 @@ namespace HeroVR.Editor
             string handUsage,
             Vector3 editorPosition)
         {
-            GameObject controllerObject = new GameObject(objectName);
-            controllerObject.transform.SetParent(parent, false);
-            controllerObject.transform.localPosition = editorPosition;
-
-            ConfigureTrackedPose(
-                controllerObject.AddComponent<TrackedPoseDriver>(),
+            return CreateTrackedPoseObject(
+                parent,
                 objectName,
+                editorPosition,
                 $"<XRController>{{{handUsage}}}/devicePosition",
                 $"<XRController>{{{handUsage}}}/deviceRotation",
                 $"<XRController>{{{handUsage}}}/trackingState");
-            return controllerObject.transform;
+        }
+
+        private static Transform CreateTrackedPoseObject(
+            Transform parent,
+            string objectName,
+            Vector3 editorPosition,
+            string positionPath,
+            string rotationPath,
+            string trackingStatePath)
+        {
+            GameObject trackedObject = new GameObject(objectName);
+            trackedObject.transform.SetParent(parent, false);
+            trackedObject.transform.localPosition = editorPosition;
+
+            ConfigureTrackedPose(
+                trackedObject.AddComponent<TrackedPoseDriver>(),
+                objectName,
+                positionPath,
+                rotationPath,
+                trackingStatePath);
+            return trackedObject.transform;
         }
 
         private static void CreatePhysicsHand(

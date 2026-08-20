@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7882b89db23db4052bade2f3aa4c2ca2, type: 3}
+  m_Name: Thor
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroDefinition
+  heroId: thor
+  displayName: Thor
+  description: A durable thunder god who controls Mjolnir and channels aimed lightning.
+  signatureColor: {r: 0.35, g: 0.7, b: 1, a: 1}
+  resourceName: Storm Charge
+  primaryName: Mjolnir
+  secondaryName: Lightning Bolt
+  movementName: Thunder Dash
+  ultimateName: God of Thunder
+  maxHealth: 190
+  overrideLocomotion: 1
+  locomotion:
+    moveSpeed: 5.4
+    jumpHeight: 3.2
+  maximumUltimateCharge: 100
+  chargePerDamageDealt: 1
+  chargePerDamageTaken: 0.65
+  melee:
+    cooldown: 0.32
+    damage: 24
+    range: 1.6
+    radius: 0.7
+    knockbackImpulse: 10
+  physicalPunch:
+    minimumSpeed: 1.25
+    damagePerSpeed: 9
+    maximumDamage: 38
+    knockbackMultiplier: 2.4
+    maximumKnockbackImpulse: 18
+  projectile:
+    cooldown: 0.45
+    damage: 24
+    speed: 26
+    lifetime: 5
+    knockbackImpulse: 7
+  dash:
+    cooldown: 1.4
+    distance: 5.5
+    duration: 0.3
+  weapon:
+    minimumHitSpeed: 1.1
+    damagePerSpeed: 12
+    maximumDamage: 60
+    knockbackMultiplier: 3.3
+    maximumKnockbackImpulse: 28
+    contactCooldown: 0.28
+    throwVelocityMultiplier: 1.45
+    maximumThrowSpeed: 28
+    recallSpeed: 22
+    recallAcceleration: 55
+  lightning:
+    cooldown: 0.7
+    range: 26
+    damage: 34
+    knockbackImpulse: 10
+    visualDuration: 0.1
+  ultimate:
+    cooldown: 1
+    radius: 5
+    damage: 50
+    knockbackImpulse: 24

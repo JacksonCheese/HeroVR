@@ -23,6 +23,8 @@ namespace HeroVR.XR
         private bool jumpRequested;
 
         public Transform Head => head;
+        public float MoveSpeed => moveSpeed;
+        public float JumpHeight => jumpHeight;
         public Vector3 DesiredWorldMoveDirection
         {
             get
@@ -58,6 +60,12 @@ namespace HeroVR.XR
         public void RequestJump()
         {
             jumpRequested = true;
+        }
+
+        public void ConfigureMovement(float speed, float height)
+        {
+            moveSpeed = Mathf.Max(0f, speed);
+            jumpHeight = Mathf.Max(0f, height);
         }
 
         public void RequestSnapTurn(float direction)

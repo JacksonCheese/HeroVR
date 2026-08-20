@@ -260,6 +260,7 @@ MonoBehaviour:
   cooldown: 0.45
   projectilePrefab: {fileID: 2319156023187716121, guid: c118c7407c27f463d8005fb9fa962005, type: 3}
   spawnPoint: {fileID: 5042951366781094784}
+  aimProviderSource: {fileID: 866842187480496405}
   projectileSpeed: 26
   projectileDamage: 24
   projectileLifetime: 5
@@ -279,6 +280,7 @@ MonoBehaviour:
   cooldown: 1.2
   directionSource: {fileID: 1077131931084453373}
   distance: 6
+  duration: 0.22
 --- !u!114 &8227350747028928702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,6 +367,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5042951366781094784}
+  - component: {fileID: 866842187480496405}
   m_Layer: 0
   m_Name: ProjectileSpawn
   m_TagString: Untagged
@@ -387,3 +390,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7091135295914702528}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &866842187480496405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8863723827799019920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a0f708f01a86429ea41e0c1432291c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.TransformAimProvider
+  originTransform: {fileID: 5042951366781094784}
+  directionTransform: {fileID: 7091135295914702528}

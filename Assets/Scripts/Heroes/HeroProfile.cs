@@ -1,5 +1,8 @@
 using HeroVR.Abilities;
 using HeroVR.Combat;
+using HeroVR.Movement;
+using HeroVR.Weapons;
+using HeroVR.XR;
 using UnityEngine;
 
 namespace HeroVR.Heroes
@@ -42,11 +45,14 @@ namespace HeroVR.Heroes
                 definition.ChargePerDamageDealt,
                 definition.ChargePerDamageTaken);
 
+            ConfigureLocomotion();
             ConfigureMelee();
             ConfigureProjectile();
+            ConfigureLightning();
             ConfigureDash();
             ConfigureUltimate();
             ConfigurePhysicalPunches();
+            ConfigureWeapons();
         }
 
         private void CacheComponents()
@@ -70,6 +76,21 @@ namespace HeroVR.Heroes
                 settings.range,
                 settings.radius,
                 settings.knockbackImpulse);
+        }
+
+        private void ConfigureLocomotion()
+        {
+            if (!definition.OverrideLocomotion)
+                return;
+
+            HeroDefinition.LocomotionSettings settings = definition.Locomotion;
+            DesktopCharacterMotor desktopMotor = GetComponent<DesktopCharacterMotor>();
+            if (desktopMotor != null)
+                desktopMotor.ConfigureMovement(settings.moveSpeed, settings.jumpHeight);
+
+            XRCharacterMotor xrMotor = GetComponent<XRCharacterMotor>();
+            if (xrMotor != null)
+                xrMotor.ConfigureMovement(settings.moveSpeed, settings.jumpHeight);
         }
 
         private void ConfigureProjectile()
@@ -97,6 +118,28 @@ namespace HeroVR.Heroes
             HeroDefinition.DashSettings settings = definition.Dash;
             dash.SetCooldown(settings.cooldown);
             dash.SetDistance(settings.distance);
+            dash.SetDuration(settings.duration > 0f ? settings.duration : .22f);
+        }
+
+        private void ConfigureLightning()
+        {
+            ConfigureLightningAbility(loadout.PrimaryAttack as LightningAbility);
+            if (loadout.SecondaryAttack != loadout.PrimaryAttack)
+                ConfigureLightningAbility(loadout.SecondaryAttack as LightningAbility);
+        }
+
+        private void ConfigureLightningAbility(LightningAbility lightning)
+        {
+            if (lightning == null)
+                return;
+
+            HeroDefinition.LightningSettings settings = definition.Lightning;
+            lightning.SetCooldown(settings.cooldown);
+            lightning.ConfigureCombat(
+                settings.range,
+                settings.damage,
+                settings.knockbackImpulse,
+                settings.visualDuration);
         }
 
         private void ConfigureUltimate()
@@ -125,6 +168,29 @@ namespace HeroVR.Heroes
                     settings.maximumDamage,
                     settings.knockbackMultiplier,
                     settings.maximumKnockbackImpulse);
+            }
+        }
+
+        private void ConfigureWeapons()
+        {
+            HeroDefinition.WeaponSettings settings = definition.Weapon;
+            RecallableWeapon[] weapons =
+                GetComponentsInChildren<RecallableWeapon>(true);
+            for (int index = 0; index < weapons.Length; index++)
+            {
+                weapons[index].ConfigureOwner(health);
+                weapons[index].ConfigureMotion(
+                    settings.throwVelocityMultiplier,
+                    settings.maximumThrowSpeed,
+                    settings.recallSpeed,
+                    settings.recallAcceleration);
+                weapons[index].ConfigureImpact(
+                    settings.minimumHitSpeed,
+                    settings.damagePerSpeed,
+                    settings.maximumDamage,
+                    settings.knockbackMultiplier,
+                    settings.maximumKnockbackImpulse,
+                    settings.contactCooldown);
             }
         }
     }

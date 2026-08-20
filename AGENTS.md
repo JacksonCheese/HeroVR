@@ -134,6 +134,12 @@ The current custom code is organized under `Assets/Scripts`:
 - `Combat/DamageTester.cs` is temporary diagnostic code.
 - `Abilities/EnergyProjectile.cs` contains projectile collision, damage, and knockback behavior.
 - `Abilities/ProjectileCaster.cs` is the current action-to-projectile bridge.
+- `Abilities/IAimProvider.cs` and `Abilities/TransformAimProvider.cs` provide a
+  device-independent world-space origin and direction to aimed abilities.
+- `Abilities/DashAbility.cs` performs collision-aware travel through the owning
+  `CharacterController` over a configurable duration; do not restore the old
+  single-frame displacement.
+- `Abilities/LightningAbility.cs` is the reusable aimed ray/beam damage ability.
 - `Abilities/HeroAbilityLoadout.cs` is the shared ability command surface for desktop and XR input.
 - `Movement/DesktopCharacterMotor.cs` owns desktop locomotion without owning keyboard input.
 - `Prototype/DesktopHeroController.cs` is the temporary desktop vertical slice.
@@ -142,6 +148,10 @@ The current custom code is organized under `Assets/Scripts`:
 - `XR/XRCharacterMotor.cs` owns head-relative XR locomotion and comfort snap turning.
 - `XR/XRHeroInputAdapter.cs` maps Quest/OpenXR controls into the shared locomotion and ability APIs.
 - `XR/TrackedHandPhysicsFollower.cs` drives kinematic punch proxies and supplies tracked velocity to `PunchHitbox`.
+- `XR/XRWeaponInputAdapter.cs` maps grip release and recall input to a reusable
+  weapon without implementing weapon or damage rules.
+- `Weapons/RecallableWeapon.cs` owns the Held/Thrown/Recalling state machine,
+  physical throw, visible return, hand attachment, and out-of-world failsafe.
 - `Gameplay/GameplayMatchBootstrap.cs` spawns either desktop or XR player prefabs from generic arena spawn points.
 - `Heroes/HeroDefinition.cs` is the data source for hero identity, combat tuning, ability names, and ultimate-resource rules.
 - `Heroes/HeroProfile.cs` applies one definition to the existing reusable ability and combat components.
@@ -157,6 +167,14 @@ prefabs reference that definition. Kinetic Vanguard gains Momentum from actual
 damage dealt and damage taken, then consumes a full meter to activate Kinetic Nova.
 Future heroes should use their own definition and composed loadout rather than fork
 `Damageable`, the input adapters, or the locomotion components.
+
+The first substantial XR hero is **Thor**, defined by
+`Assets/Heroes/Thor/Thor.asset` and assembled in
+`Assets/Prefabs/Characters/ThorXRPlayer.prefab`. Thor composes the shared movement,
+damage, loadout, lightning, velocity-melee, throwable-weapon, and recall systems.
+`Assets/Scenes/Arenas/Arena_ThorVRTest.unity` is the gameplay-owned integrated
+playtest derived from the production graybox; the environment-owned
+`Arena_Graybox_01.unity` remains unchanged.
 
 `TrainingBot` uses `NavMeshAgent` only to obtain a throttled steering target.
 `NavMeshAgent.updatePosition`, `updateRotation`, and `updateUpAxis` remain disabled;
@@ -198,7 +216,18 @@ Design local combat so it can later become server-authoritative, but do not add 
 - Keep desktop prototype play possible while XR support is added, unless the user explicitly ends desktop support.
 - XR initialization should be deliberate per build target. Desktop prototype testing must not require an active headset or desktop OpenXR runtime.
 - Quest controller profiles and hand tracking are separate interaction paths; do not assume hand tracking is required for the first Quest milestone.
-- The initial XR bindings use left stick movement, right stick snap turn, left X jump, left stick-click dash, right trigger projectile, and right A radial smash. Physical hand velocity activates punch damage through `PunchHitbox` rather than a button binding.
+- The shared XR player bindings use left stick movement, right stick snap turn,
+  right A jump, left stick-click dash, right trigger projectile, and right
+  stick-click ultimate. The right controller's OpenXR pointer pose—not its grip
+  pose—is the aimed-ability direction. Physical hand velocity activates punch
+  damage through `PunchHitbox` rather than a button binding.
+- Thor uses right trigger for lightning, right grip press/release to throw
+  Mjolnir, right B to recall it, and retains the shared movement/jump/dash/
+  ultimate bindings. The held hammer follows the grip pose while lightning uses
+  the independent pointer pose.
+- Android OpenXR has Oculus Touch Controller Profile and Meta Quest Support
+  enabled. Preserve both settings as well as the enabled Standalone Oculus Touch
+  profile and the Windows D3D11 PCVR configuration.
 
 ## Quest 2 Performance Baseline
 

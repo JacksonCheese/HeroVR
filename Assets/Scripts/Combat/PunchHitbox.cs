@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HeroVR.Combat
@@ -13,10 +14,15 @@ namespace HeroVR.Combat
         [Header("Knockback")]
         [SerializeField] private float knockbackMultiplier = 1.8f;
         [SerializeField] private float maxKnockbackImpulse = 12f;
+        [SerializeField, Min(0f)] private float contactCooldown = .2f;
 
         private Rigidbody rb;
         private Damageable owner;
         private IHitVelocityProvider velocityProvider;
+        private readonly Dictionary<Damageable, float> nextHitTimes =
+            new Dictionary<Damageable, float>();
+
+        public Damageable Owner => owner;
 
         private void Awake()
         {
@@ -43,7 +49,16 @@ namespace HeroVR.Combat
             if (speed < minimumHitSpeed) return;
 
             var target = collision.collider.GetComponentInParent<Damageable>();
-            if (target == null || target == owner) return;
+            if (target == null || target == owner || target.IsDead)
+                return;
+
+            if (nextHitTimes.TryGetValue(target, out float nextHitTime) &&
+                Time.time < nextHitTime)
+            {
+                return;
+            }
+
+            nextHitTimes[target] = Time.time + contactCooldown;
 
             float damage = Mathf.Min(speed * damagePerMeterPerSecond, maxDamage);
             Vector3 direction = velocity.normalized;
@@ -77,6 +92,43 @@ namespace HeroVR.Combat
             maxDamage = Mathf.Max(0f, maximumDamage);
             knockbackMultiplier = Mathf.Max(0f, impulseMultiplier);
             maxKnockbackImpulse = Mathf.Max(0f, maximumImpulse);
+        }
+
+        public void Configure(
+            float minimumSpeed,
+            float damagePerSpeed,
+            float maximumDamage,
+            float impulseMultiplier,
+            float maximumImpulse,
+            float perTargetContactCooldown)
+        {
+            Configure(
+                minimumSpeed,
+                damagePerSpeed,
+                maximumDamage,
+                impulseMultiplier,
+                maximumImpulse);
+            contactCooldown = Mathf.Max(0f, perTargetContactCooldown);
+        }
+
+        public void SetOwner(Damageable damageOwner)
+        {
+            owner = damageOwner;
+        }
+
+        private void OnDisable()
+        {
+            nextHitTimes.Clear();
+        }
+
+        private void OnValidate()
+        {
+            minimumHitSpeed = Mathf.Max(0f, minimumHitSpeed);
+            damagePerMeterPerSecond = Mathf.Max(0f, damagePerMeterPerSecond);
+            maxDamage = Mathf.Max(0f, maxDamage);
+            knockbackMultiplier = Mathf.Max(0f, knockbackMultiplier);
+            maxKnockbackImpulse = Mathf.Max(0f, maxKnockbackImpulse);
+            contactCooldown = Mathf.Max(0f, contactCooldown);
         }
     }
 }

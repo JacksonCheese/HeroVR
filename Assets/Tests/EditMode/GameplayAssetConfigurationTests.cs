@@ -1,0 +1,176 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
+using HeroVR.Abilities;
+using HeroVR.Arena;
+using HeroVR.Gameplay;
+using HeroVR.Heroes;
+using HeroVR.Weapons;
+using HeroVR.XR;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
+using UnityEngine.SceneManagement;
+
+namespace HeroVR.Tests
+{
+    public sealed class GameplayAssetConfigurationTests
+    {
+        private const string XrPlayerPath =
+            "Assets/Prefabs/Characters/XRPlayer.prefab";
+        private const string ThorPlayerPath =
+            "Assets/Prefabs/Characters/ThorXRPlayer.prefab";
+        private const string ThorArenaPath =
+            "Assets/Scenes/Arenas/Arena_ThorVRTest.unity";
+
+        [Test]
+        public void XrPlayer_UsesRightPrimaryJumpAndPointerAimPose()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(XrPlayerPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            XRHeroInputAdapter input = prefab.GetComponent<XRHeroInputAdapter>();
+            Assert.That(input, Is.Not.Null);
+            Assert.That(
+                BindingPaths(input.JumpInputAction),
+                Does.Contain("<XRController>{RightHand}/{primaryButton}"));
+            Assert.That(
+                BindingPaths(input.JumpInputAction),
+                Does.Not.Contain("<XRController>{LeftHand}/{primaryButton}"));
+            Assert.That(
+                BindingPaths(input.UltimateInputAction),
+                Does.Not.Contain("<XRController>{RightHand}/{primaryButton}"));
+
+            TransformAimProvider aim =
+                prefab.GetComponentInChildren<TransformAimProvider>(true);
+            Assert.That(aim, Is.Not.Null);
+            TrackedPoseDriver pose =
+                aim.transform.parent.GetComponent<TrackedPoseDriver>();
+            Assert.That(pose, Is.Not.Null);
+            Assert.That(
+                BindingPaths(pose.positionInput.action),
+                Does.Contain("<XRController>{RightHand}/pointerPosition"));
+            Assert.That(
+                BindingPaths(pose.rotationInput.action),
+                Does.Contain("<XRController>{RightHand}/pointerRotation"));
+        }
+
+        [Test]
+        public void ThorPrefab_ComposesReusableHeroWeaponAndLightningSystems()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ThorPlayerPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            HeroProfile profile = prefab.GetComponent<HeroProfile>();
+            Assert.That(profile, Is.Not.Null);
+            Assert.That(profile.Definition, Is.Not.Null);
+            Assert.That(profile.Definition.HeroId, Is.EqualTo("thor"));
+            Assert.That(prefab.GetComponent<LightningAbility>(), Is.Not.Null);
+
+            RecallableWeapon weapon =
+                prefab.GetComponentInChildren<RecallableWeapon>(true);
+            XRWeaponInputAdapter weaponInput =
+                prefab.GetComponent<XRWeaponInputAdapter>();
+            Assert.That(weapon, Is.Not.Null);
+            Assert.That(weaponInput, Is.Not.Null);
+            Assert.That(weaponInput.Weapon, Is.SameAs(weapon));
+            Assert.That(
+                BindingPaths(weaponInput.GripInputAction),
+                Does.Contain("<XRController>{RightHand}/{gripButton}"));
+            Assert.That(
+                BindingPaths(weaponInput.RecallInputAction),
+                Does.Contain("<XRController>{RightHand}/{secondaryButton}"));
+        }
+
+        [Test]
+        public void ThorArena_UsesGenericSpawnContractsAndGameplayBootstrap()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ThorArenaPath,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                List<ArenaSpawnPoint> spawnPoints =
+                    GetSceneComponents<ArenaSpawnPoint>(scene);
+                Assert.That(spawnPoints, Has.Count.EqualTo(4));
+                Assert.That(
+                    spawnPoints.FindAll(
+                        point => point.SpawnType == ArenaSpawnType.Player),
+                    Has.Count.EqualTo(2));
+                Assert.That(
+                    spawnPoints.FindAll(
+                        point => point.SpawnType == ArenaSpawnType.TrainingEnemy),
+                    Has.Count.EqualTo(2));
+                Assert.That(
+                    spawnPoints.FindAll(point => point.Team == ArenaTeam.TeamOne),
+                    Has.Count.EqualTo(2));
+                Assert.That(
+                    spawnPoints.FindAll(point => point.Team == ArenaTeam.TeamTwo),
+                    Has.Count.EqualTo(2));
+                Assert.That(
+                    GetSceneComponents<GameplayMatchBootstrap>(scene),
+                    Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void OpenXr_PreservesPcTouchAndEnablesQuestTouchSupport()
+        {
+            Assert.That(
+                HasSerializedEnabledFeature(
+                    "OculusTouchControllerProfile Android"),
+                Is.True);
+            Assert.That(
+                HasSerializedEnabledFeature("MetaQuestFeature Android"),
+                Is.True);
+            Assert.That(
+                HasSerializedEnabledFeature(
+                    "OculusTouchControllerProfile Standalone"),
+                Is.True);
+        }
+
+        private static bool HasSerializedEnabledFeature(string featureName)
+        {
+            string path = Path.Combine(
+                Application.dataPath,
+                "XR/Settings/OpenXRPackageSettings.asset");
+            string contents = File.ReadAllText(path);
+            string pattern =
+                $"m_Name: {Regex.Escape(featureName)}\\r?\\n" +
+                "  m_EditorClassIdentifier: [^\\r\\n]+\\r?\\n" +
+                "  m_enabled: 1";
+            return Regex.IsMatch(contents, pattern);
+        }
+
+        private static List<TComponent> GetSceneComponents<TComponent>(Scene scene)
+            where TComponent : Component
+        {
+            List<TComponent> components = new List<TComponent>();
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int index = 0; index < roots.Length; index++)
+            {
+                components.AddRange(
+                    roots[index].GetComponentsInChildren<TComponent>(true));
+            }
+
+            return components;
+        }
+
+        private static List<string> BindingPaths(InputAction action)
+        {
+            Assert.That(action, Is.Not.Null);
+            List<string> paths = new List<string>(action.bindings.Count);
+            for (int index = 0; index < action.bindings.Count; index++)
+                paths.Add(action.bindings[index].path);
+            return paths;
+        }
+    }
+}

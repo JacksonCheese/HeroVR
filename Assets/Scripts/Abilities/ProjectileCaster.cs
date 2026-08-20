@@ -6,6 +6,7 @@ namespace HeroVR.Abilities
     {
         [SerializeField] private EnergyProjectile projectilePrefab;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private MonoBehaviour aimProviderSource;
         [SerializeField] private float projectileSpeed = 20f;
         [SerializeField, Min(0f)] private float projectileDamage = 25f;
         [SerializeField, Min(.01f)] private float projectileLifetime = 5f;
@@ -13,6 +14,8 @@ namespace HeroVR.Abilities
 
         public EnergyProjectile ProjectilePrefab => projectilePrefab;
         public Transform SpawnPoint => spawnPoint;
+        public IAimProvider AimProvider => aimProviderSource as IAimProvider;
+        public EnergyProjectile LastSpawnedProjectile { get; private set; }
 
         public void Configure(
             EnergyProjectile prefab,
@@ -34,6 +37,11 @@ namespace HeroVR.Abilities
             spawnPoint = projectileSpawnPoint;
         }
 
+        public void SetAimProvider(MonoBehaviour provider)
+        {
+            aimProviderSource = provider is IAimProvider ? provider : null;
+        }
+
         public void ConfigureCombat(
             float damage,
             float lifetime,
@@ -51,10 +59,28 @@ namespace HeroVR.Abilities
 
         protected override bool Activate()
         {
+            IAimProvider aimProvider = AimProvider;
+            Vector3 origin = aimProvider != null
+                ? aimProvider.Origin
+                : spawnPoint.position;
+            Vector3 direction = aimProvider != null
+                ? aimProvider.Direction
+                : spawnPoint.forward;
+            if (direction.sqrMagnitude <= .0001f)
+                return false;
+
+            direction.Normalize();
+            Vector3 up = aimProvider != null ? aimProvider.Up : spawnPoint.up;
+            if (Mathf.Abs(Vector3.Dot(direction, up.normalized)) > .999f)
+                up = Mathf.Abs(Vector3.Dot(direction, Vector3.up)) > .999f
+                    ? Vector3.right
+                    : Vector3.up;
+
             EnergyProjectile projectile = Instantiate(
                 projectilePrefab,
-                spawnPoint.position,
-                spawnPoint.rotation);
+                origin,
+                Quaternion.LookRotation(direction, up));
+            LastSpawnedProjectile = projectile;
 
             if (!projectile.gameObject.activeSelf)
                 projectile.gameObject.SetActive(true);
@@ -64,7 +90,7 @@ namespace HeroVR.Abilities
                 projectileLifetime,
                 projectileKnockbackImpulse);
             projectile.Launch(
-                spawnPoint.forward * projectileSpeed,
+                direction * projectileSpeed,
                 Owner);
 
             return true;

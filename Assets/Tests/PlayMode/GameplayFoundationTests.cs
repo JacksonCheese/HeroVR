@@ -6,6 +6,7 @@ using HeroVR.Gameplay;
 using HeroVR.Heroes;
 using HeroVR.Prototype;
 using HeroVR.XR;
+using HeroVR.Weapons;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -115,19 +116,233 @@ namespace HeroVR.Tests
         }
 
         [UnityTest]
-        public IEnumerator DashAbility_UsesRequestedWorldDirection()
+        public IEnumerator DashAbility_TravelsOverMultipleFramesInRequestedDirection()
         {
             GameObject actor = new GameObject("DirectionalDashActor");
+            actor.transform.position = Vector3.up * 50f;
             actor.AddComponent<CharacterController>();
             actor.AddComponent<Damageable>();
             DashAbility dash = actor.AddComponent<DashAbility>();
+            dash.SetCooldown(1f);
+            dash.SetDistance(5f);
+            dash.SetDuration(.2f);
             dash.SetDirection(Vector3.left);
 
             Assert.That(dash.TryActivate(), Is.True);
-            Assert.That(actor.transform.position.x, Is.LessThan(-4.9f));
+            Vector3 startPosition = actor.transform.position;
+            Assert.That(actor.transform.position, Is.EqualTo(startPosition));
+            Assert.That(dash.IsDashing, Is.True);
+            Assert.That(dash.TryActivate(), Is.False, "Cooldown/state must reject overlap.");
+
+            yield return null;
+
+            float intermediateX = actor.transform.position.x;
+            Assert.That(intermediateX, Is.LessThan(0f));
+            Assert.That(intermediateX, Is.GreaterThan(-4.9f));
+
+            int movingFrames = 1;
+            float dashDeadline = Time.time + 1f;
+            while (dash.IsDashing && Time.time < dashDeadline)
+            {
+                movingFrames++;
+                yield return null;
+            }
+
+            Assert.That(movingFrames, Is.GreaterThan(1));
+            Assert.That(
+                actor.transform.position.x - startPosition.x,
+                Is.EqualTo(-5f).Within(.15f));
             Assert.That(Mathf.Abs(actor.transform.position.z), Is.LessThan(.01f));
 
             Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ProjectileCaster_AlignsVelocityWithAimProviderDirection()
+        {
+            GameObject projectileTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            projectileTemplate.name = "DirectionTestProjectile";
+            Rigidbody templateBody = projectileTemplate.AddComponent<Rigidbody>();
+            templateBody.useGravity = false;
+            EnergyProjectile projectilePrefab =
+                projectileTemplate.AddComponent<EnergyProjectile>();
+
+            GameObject owner = new GameObject("ProjectileDirectionOwner");
+            owner.AddComponent<Damageable>();
+            ProjectileCaster caster = owner.AddComponent<ProjectileCaster>();
+
+            GameObject aimObject = new GameObject("AimProvider");
+            aimObject.transform.SetParent(owner.transform, false);
+            Vector3 expectedDirection = new Vector3(.55f, .35f, .76f).normalized;
+            aimObject.transform.rotation = Quaternion.LookRotation(expectedDirection);
+            TransformAimProvider aimProvider =
+                aimObject.AddComponent<TransformAimProvider>();
+            aimProvider.Configure(aimObject.transform, aimObject.transform);
+
+            caster.Configure(projectilePrefab, aimObject.transform, 18f);
+            caster.SetAimProvider(aimProvider);
+            caster.SetCooldown(0f);
+
+            Assert.That(caster.TryActivate(), Is.True);
+            EnergyProjectile spawned = caster.LastSpawnedProjectile;
+            Assert.That(spawned, Is.Not.Null);
+            Vector3 velocity = spawned.GetComponent<Rigidbody>().linearVelocity.normalized;
+            Assert.That(Vector3.Dot(velocity, expectedDirection), Is.GreaterThan(.999f));
+
+            Object.Destroy(spawned.gameObject);
+            Object.Destroy(owner);
+            Object.Destroy(projectileTemplate);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator LightningAbility_UsesAimAndSharedDamageAttribution()
+        {
+            GameObject ownerObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            ownerObject.name = "LightningOwner";
+            ownerObject.transform.position = Vector3.up * 60f;
+            Damageable owner = ownerObject.AddComponent<Damageable>();
+
+            GameObject aimObject = new GameObject("LightningAim");
+            aimObject.transform.SetParent(ownerObject.transform, false);
+            aimObject.transform.localPosition = Vector3.forward;
+            Vector3 expectedDirection = Vector3.forward;
+            TransformAimProvider aim = aimObject.AddComponent<TransformAimProvider>();
+            aim.Configure(aimObject.transform, aimObject.transform);
+
+            LightningAbility lightning = ownerObject.AddComponent<LightningAbility>();
+            lightning.SetAimProvider(aim);
+            lightning.ConfigureCombat(10f, 30f, 5f, 0f);
+            lightning.SetCooldown(0f);
+
+            GameObject targetObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            targetObject.name = "LightningTarget";
+            targetObject.transform.position =
+                ownerObject.transform.position + Vector3.forward * 4f;
+            Damageable target = targetObject.AddComponent<Damageable>();
+            DamageInfo receivedDamage = default;
+            target.Damaged += info => receivedDamage = info;
+            Physics.SyncTransforms();
+
+            Assert.That(lightning.TryActivate(), Is.True);
+            Assert.That(target.CurrentHealth, Is.EqualTo(70f));
+            Assert.That(owner.CurrentHealth, Is.EqualTo(owner.MaxHealth));
+            Assert.That(receivedDamage.Instigator, Is.SameAs(ownerObject));
+            Assert.That(
+                Vector3.Dot(lightning.LastDirection, expectedDirection),
+                Is.GreaterThan(.999f));
+
+            Object.Destroy(ownerObject);
+            Object.Destroy(targetObject);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator RecallableWeapon_TransitionsHeldThrownRecallingHeld()
+        {
+            GameObject ownerObject = new GameObject("MjolnirOwner");
+            ownerObject.transform.position = Vector3.up * 50f;
+            Damageable owner = ownerObject.AddComponent<Damageable>();
+            ownerObject.AddComponent<CapsuleCollider>();
+
+            GameObject anchorObject = new GameObject("WeaponAnchor");
+            anchorObject.transform.SetParent(ownerObject.transform, false);
+            anchorObject.transform.localPosition = Vector3.forward;
+
+            GameObject weaponObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            weaponObject.name = "StateTestMjolnir";
+            weaponObject.AddComponent<Rigidbody>();
+            RecallableWeapon weapon = weaponObject.AddComponent<RecallableWeapon>();
+            weaponObject.AddComponent<PunchHitbox>();
+            weapon.SetHoldAnchor(anchorObject.transform);
+            weapon.ConfigureOwner(owner);
+            weapon.ConfigureMotion(1f, 20f, 20f, 80f);
+
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Held));
+            Assert.That(weapon.TryThrow(Vector3.forward * 8f), Is.True);
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Thrown));
+
+            Rigidbody body = weaponObject.GetComponent<Rigidbody>();
+            for (int index = 0; index < 18; index++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(
+                Vector3.Distance(body.position, anchorObject.transform.position),
+                Is.GreaterThan(2.5f));
+            Assert.That(weapon.BeginRecall(), Is.True);
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Recalling));
+
+            int recallFrames = 0;
+            while (weapon.State != RecallableWeaponState.Held && recallFrames < 120)
+            {
+                recallFrames++;
+                yield return new WaitForFixedUpdate();
+            }
+
+            Assert.That(recallFrames, Is.GreaterThan(1));
+            Assert.That(weapon.State, Is.EqualTo(RecallableWeaponState.Held));
+            Assert.That(weapon.transform.parent, Is.SameAs(anchorObject.transform));
+
+            Object.Destroy(ownerObject);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator RecallableWeapon_AttributesOneImpactAndCannotDamageOwner()
+        {
+            GameObject ownerObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            ownerObject.name = "WeaponDamageOwner";
+            ownerObject.transform.position = Vector3.up * 50f;
+            Damageable owner = ownerObject.AddComponent<Damageable>();
+
+            GameObject anchorObject = new GameObject("WeaponDamageAnchor");
+            anchorObject.transform.SetParent(ownerObject.transform, false);
+            anchorObject.transform.localPosition = Vector3.forward;
+
+            GameObject weaponObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            weaponObject.name = "DamageTestMjolnir";
+            weaponObject.transform.localScale = Vector3.one * .25f;
+            Rigidbody weaponBody = weaponObject.AddComponent<Rigidbody>();
+            weaponBody.useGravity = false;
+            RecallableWeapon weapon = weaponObject.AddComponent<RecallableWeapon>();
+            weaponObject.AddComponent<PunchHitbox>();
+            weapon.SetHoldAnchor(anchorObject.transform);
+            weapon.ConfigureOwner(owner);
+            weapon.ConfigureMotion(1f, 20f, 20f, 80f);
+            weapon.ConfigureImpact(1f, 2f, 20f, 1f, 10f, .5f);
+
+            GameObject targetObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            targetObject.name = "WeaponDamageTarget";
+            targetObject.transform.position =
+                ownerObject.transform.position + Vector3.forward * 3f;
+            Damageable target = targetObject.AddComponent<Damageable>();
+            DamageInfo receivedDamage = default;
+            target.Damaged += info => receivedDamage = info;
+
+            Assert.That(weapon.TryThrow(Vector3.forward * 10f), Is.True);
+            weaponBody.useGravity = false;
+
+            float deadline = Time.time + 1f;
+            while (target.CurrentHealth >= target.MaxHealth && Time.time < deadline)
+                yield return new WaitForFixedUpdate();
+
+            Assert.That(target.CurrentHealth, Is.EqualTo(80f).Within(.5f));
+            Assert.That(receivedDamage.Instigator, Is.SameAs(ownerObject));
+            Assert.That(owner.CurrentHealth, Is.EqualTo(owner.MaxHealth));
+
+            weaponBody.position =
+                ownerObject.transform.position + Vector3.forward * 1.5f;
+            weaponBody.linearVelocity = Vector3.forward * 10f;
+            Physics.SyncTransforms();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(target.CurrentHealth, Is.EqualTo(80f).Within(.5f),
+                "Per-target contact protection allowed a duplicate immediate hit.");
+
+            Object.Destroy(ownerObject);
+            Object.Destroy(weaponObject);
+            Object.Destroy(targetObject);
             yield return null;
         }
 

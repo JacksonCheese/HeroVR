@@ -9,6 +9,13 @@ namespace HeroVR.Heroes
     public sealed class HeroDefinition : ScriptableObject
     {
         [Serializable]
+        public struct LocomotionSettings
+        {
+            [Min(0f)] public float moveSpeed;
+            [Min(0f)] public float jumpHeight;
+        }
+
+        [Serializable]
         public struct MeleeSettings
         {
             [Min(0f)] public float cooldown;
@@ -43,6 +50,32 @@ namespace HeroVR.Heroes
         {
             [Min(0f)] public float cooldown;
             [Min(0f)] public float distance;
+            [Min(.05f)] public float duration;
+        }
+
+        [Serializable]
+        public struct WeaponSettings
+        {
+            [Min(0f)] public float minimumHitSpeed;
+            [Min(0f)] public float damagePerSpeed;
+            [Min(0f)] public float maximumDamage;
+            [Min(0f)] public float knockbackMultiplier;
+            [Min(0f)] public float maximumKnockbackImpulse;
+            [Min(0f)] public float contactCooldown;
+            [Min(0f)] public float throwVelocityMultiplier;
+            [Min(0f)] public float maximumThrowSpeed;
+            [Min(0f)] public float recallSpeed;
+            [Min(0f)] public float recallAcceleration;
+        }
+
+        [Serializable]
+        public struct LightningSettings
+        {
+            [Min(0f)] public float cooldown;
+            [Min(0f)] public float range;
+            [Min(0f)] public float damage;
+            [Min(0f)] public float knockbackImpulse;
+            [Min(0f)] public float visualDuration;
         }
 
         [Serializable]
@@ -71,6 +104,15 @@ namespace HeroVR.Heroes
 
         [Header("Survivability")]
         [SerializeField, Min(.01f)] private float maxHealth = 125f;
+
+        [Header("Locomotion")]
+        [SerializeField] private bool overrideLocomotion;
+        [SerializeField] private LocomotionSettings locomotion =
+            new LocomotionSettings
+            {
+                moveSpeed = 7f,
+                jumpHeight = 2.6f
+            };
 
         [Header("Momentum")]
         [SerializeField, Min(.01f)] private float maximumUltimateCharge = 100f;
@@ -113,8 +155,35 @@ namespace HeroVR.Heroes
         [SerializeField] private DashSettings dash = new DashSettings
         {
             cooldown = 1.2f,
-            distance = 6f
+            distance = 6f,
+            duration = .22f
         };
+
+        [Header("Reusable Weapon")]
+        [SerializeField] private WeaponSettings weapon = new WeaponSettings
+        {
+            minimumHitSpeed = 1.5f,
+            damagePerSpeed = 9f,
+            maximumDamage = 42f,
+            knockbackMultiplier = 2.4f,
+            maximumKnockbackImpulse = 18f,
+            contactCooldown = .25f,
+            throwVelocityMultiplier = 1.35f,
+            maximumThrowSpeed = 24f,
+            recallSpeed = 18f,
+            recallAcceleration = 45f
+        };
+
+        [Header("Reusable Lightning")]
+        [SerializeField] private LightningSettings lightning =
+            new LightningSettings
+            {
+                cooldown = .8f,
+                range = 24f,
+                damage = 30f,
+                knockbackImpulse = 8f,
+                visualDuration = .12f
+            };
 
         [Header("Ultimate — Kinetic Nova")]
         [SerializeField] private UltimateSettings ultimate =
@@ -136,6 +205,8 @@ namespace HeroVR.Heroes
         public string MovementName => movementName;
         public string UltimateName => ultimateName;
         public float MaxHealth => maxHealth;
+        public bool OverrideLocomotion => overrideLocomotion;
+        public LocomotionSettings Locomotion => locomotion;
         public float MaximumUltimateCharge => maximumUltimateCharge;
         public float ChargePerDamageDealt => chargePerDamageDealt;
         public float ChargePerDamageTaken => chargePerDamageTaken;
@@ -143,6 +214,8 @@ namespace HeroVR.Heroes
         public PhysicalPunchSettings PhysicalPunch => physicalPunch;
         public ProjectileSettings Projectile => projectile;
         public DashSettings Dash => dash;
+        public WeaponSettings Weapon => weapon;
+        public LightningSettings Lightning => lightning;
         public UltimateSettings Ultimate => ultimate;
 
         public void ConfigureIdentity(
