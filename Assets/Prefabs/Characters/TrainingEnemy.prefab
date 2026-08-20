@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 7589513862464426227}
   - component: {fileID: 437707388769004514}
   - component: {fileID: 8968420397153612384}
+  - component: {fileID: 8400298172704022168}
   - component: {fileID: 4529624653918954845}
   m_Layer: 0
   m_Name: TrainingEnemy
@@ -178,6 +179,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.RespawnOnDeath
   respawnPoint: {fileID: 0}
   respawnDelay: 2
+--- !u!195 &8400298172704022168
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5569666687069461183}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 5
+  m_Acceleration: 12
+  avoidancePriority: 50
+  m_AngularSpeed: 0
+  m_StoppingDistance: 1.75
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 0
+  m_AutoRepath: 0
+  m_Height: 2
+  m_BaseOffset: -1
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 0
 --- !u!114 &4529624653918954845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,6 +216,9 @@ MonoBehaviour:
   moveSpeed: 5
   acceleration: 12
   turnSpeed: 8
+  repathInterval: 0.35
+  targetRepathDistance: 1
+  targetSampleDistance: 2
   attackRange: 1.75
   attackDamage: 12
   attackKnockbackImpulse: 7
