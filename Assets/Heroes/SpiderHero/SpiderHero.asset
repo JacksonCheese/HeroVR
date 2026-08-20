@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7882b89db23db4052bade2f3aa4c2ca2, type: 3}
+  m_Name: SpiderHero
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroDefinition
+  heroId: spider-hero
+  displayName: Spider-Man
+  description: An agile wall-crawler who trades durability for speed, trading
+    hard hits for constant repositioning and web control.
+  signatureColor: {r: 0.72, g: 0.11, b: 0.13, a: 1}
+  resourceName: Spider-Sense
+  primaryName: Spider Strike
+  secondaryName: Web Shot
+  movementName: Web Zip
+  ultimateName: Web Blast
+  maxHealth: 95
+  maximumUltimateCharge: 100
+  chargePerDamageDealt: 1.2
+  chargePerDamageTaken: 0.6
+  melee:
+    cooldown: 0.22
+    damage: 18
+    range: 1.7
+    radius: 0.65
+    knockbackImpulse: 8
+  physicalPunch:
+    minimumSpeed: 1.2
+    damagePerSpeed: 9
+    maximumDamage: 30
+    knockbackMultiplier: 2.2
+    maximumKnockbackImpulse: 13
+  projectile:
+    cooldown: 0.3
+    damage: 16
+    speed: 34
+    lifetime: 4
+    knockbackImpulse: 9
+  dash:
+    cooldown: 0.7
+    distance: 8
+  ultimate:
+    cooldown: 1
+    radius: 5.5
+    damage: 30
+    knockbackImpulse: 22

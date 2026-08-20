@@ -233,7 +233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b75ce7aed4eb64a669f6f0ea5b162037, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroProfile
-  definition: {fileID: 11400000, guid: eeb408d0c9b2f48fd8bdde696cdd38d4, type: 2}
+  definition: {fileID: 11400000, guid: f1877d38c3ee44edb3ed160ddce8ec22, type: 2}
 --- !u!114 &4250567645731771
 MonoBehaviour:
   m_ObjectHideFlags: 0
