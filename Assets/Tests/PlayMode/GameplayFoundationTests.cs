@@ -57,6 +57,36 @@ namespace HeroVR.Tests
         }
 
         [UnityTest]
+        public IEnumerator AbilityLifecycle_CancelsDashAndResetsCooldownOnRespawn()
+        {
+            GameObject actor = new GameObject("AbilityLifecycleOwner");
+            actor.transform.position = Vector3.up * 50f;
+            actor.AddComponent<CharacterController>();
+            Damageable health = actor.AddComponent<Damageable>();
+            RespawnOnDeath respawn = actor.AddComponent<RespawnOnDeath>();
+            respawn.SetRespawnDelay(10f);
+            DashAbility dash = actor.AddComponent<DashAbility>();
+            dash.SetCooldown(5f);
+            dash.SetDistance(5f);
+            dash.SetDirection(Vector3.forward);
+
+            Assert.That(dash.TryActivate(), Is.True);
+            Assert.That(dash.IsDashing, Is.True);
+            health.TakeDamage(health.MaxHealth);
+            Assert.That(dash.IsDashing, Is.False);
+
+            respawn.RespawnNow();
+            dash.SetDirection(Vector3.forward);
+            Assert.That(
+                dash.TryActivate(),
+                Is.True,
+                "Respawn should clear stale cooldown and active state.");
+
+            Object.Destroy(actor);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator HeroProfile_AppliesStatsAndMomentumGatesUltimate()
         {
             HeroDefinition definition =

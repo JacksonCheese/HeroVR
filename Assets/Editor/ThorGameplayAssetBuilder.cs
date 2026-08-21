@@ -4,6 +4,7 @@ using HeroVR.Combat;
 using HeroVR.Gameplay;
 using HeroVR.Heroes;
 using HeroVR.Input;
+using HeroVR.Movement;
 using HeroVR.Prototype;
 using HeroVR.XR;
 using HeroVR.Weapons;
@@ -19,6 +20,8 @@ namespace HeroVR.Editor
     public static class ThorGameplayAssetBuilder
     {
         private const string ThorDefinitionPath = "Assets/Heroes/Thor/Thor.asset";
+        private const string ThorFlightSettingsPath =
+            "Assets/Heroes/Thor/ThorHammerFlightSettings.asset";
         private const string MjolnirPrefabPath = "Assets/Prefabs/Weapons/Mjolnir.prefab";
         private const string ThorPlayerPrefabPath =
             "Assets/Prefabs/Characters/ThorXRPlayer.prefab";
@@ -42,6 +45,8 @@ namespace HeroVR.Editor
             EnsureFolders();
 
             HeroDefinition thorDefinition = LoadOrCreateThorDefinition();
+            ThorHammerFlightSettings flightSettings =
+                LoadOrCreateThorFlightSettings();
             Material hammerMaterial = LoadOrCreateMaterial(
                 "Assets/Materials/Gameplay/Mjolnir.mat",
                 new Color(.48f, .54f, .62f));
@@ -57,10 +62,12 @@ namespace HeroVR.Editor
                 handleMaterial);
             GameObject thorPlayerPrefab = BuildThorPlayerPrefab(
                 thorDefinition,
+                flightSettings,
                 mjolnirPrefab,
                 lightningMaterial);
             GameObject thorDesktopPlayerPrefab = BuildThorDesktopPlayerPrefab(
                 thorDefinition,
+                flightSettings,
                 mjolnirPrefab,
                 lightningMaterial);
             BuildMatchPrefab(
@@ -83,6 +90,116 @@ namespace HeroVR.Editor
             Debug.Log(
                 "Thor gameplay assets built. Arena_Graybox_01 remains untouched; " +
                 "use Arena_ThorVRTest or Arena_ThorDesktopTest for playtesting.");
+        }
+
+        [MenuItem("HeroVR/Upgrade Existing Thor Prefabs For Flight")]
+        public static void UpgradeExistingThorPrefabsForFlight()
+        {
+            EnsureFolders();
+            ThorHammerFlightSettings flightSettings =
+                LoadOrCreateThorFlightSettings();
+            UpgradeThorXrPrefabForFlight(flightSettings);
+            UpgradeThorDesktopPrefabForFlight(flightSettings);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log(
+                "Existing Thor prefabs upgraded for hammer-spin flight without " +
+                "rebuilding arena scenes or unrelated input actions.");
+        }
+
+        private static void UpgradeThorXrPrefabForFlight(
+            ThorHammerFlightSettings flightSettings)
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(ThorPlayerPrefabPath);
+            try
+            {
+                RecallableWeapon weapon =
+                    root.GetComponentInChildren<RecallableWeapon>(true);
+                XRWeaponInputAdapter weaponInput =
+                    root.GetComponent<XRWeaponInputAdapter>();
+                XRCharacterMotor motor = root.GetComponent<XRCharacterMotor>();
+                Transform rightController = FindChild(root.transform, "RightController");
+                if (weapon == null || weaponInput == null || motor == null)
+                {
+                    throw new System.InvalidOperationException(
+                        "Thor XR prefab is missing its existing weapon or motor contract.");
+                }
+
+                TransformWeaponMotionSource motionSource =
+                    root.GetComponent<TransformWeaponMotionSource>();
+                if (motionSource == null)
+                    motionSource = root.AddComponent<TransformWeaponMotionSource>();
+                motionSource.Configure(
+                    rightController,
+                    weapon,
+                    weaponInput,
+                    .12f);
+
+                ThorHammerFlight flight = root.GetComponent<ThorHammerFlight>();
+                if (flight == null)
+                    flight = root.AddComponent<ThorHammerFlight>();
+                flight.Configure(flightSettings, weapon, motionSource, motor);
+
+                PrefabUtility.SaveAsPrefabAsset(root, ThorPlayerPrefabPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void UpgradeThorDesktopPrefabForFlight(
+            ThorHammerFlightSettings flightSettings)
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(
+                ThorDesktopPlayerPrefabPath);
+            try
+            {
+                RecallableWeapon weapon =
+                    root.GetComponentInChildren<RecallableWeapon>(true);
+                DesktopCharacterMotor motor =
+                    root.GetComponent<DesktopCharacterMotor>();
+                TransformAimProvider aimProvider =
+                    root.GetComponentInChildren<TransformAimProvider>(true);
+                if (weapon == null || motor == null || aimProvider == null)
+                {
+                    throw new System.InvalidOperationException(
+                        "Thor desktop prefab is missing its existing weapon, aim, or motor contract.");
+                }
+
+                DesktopThorFlightDebugAdapter flightDebug =
+                    root.GetComponent<DesktopThorFlightDebugAdapter>();
+                if (flightDebug == null)
+                {
+                    flightDebug = root.AddComponent<DesktopThorFlightDebugAdapter>();
+                    flightDebug.Configure(
+                        CreateInputAction(
+                            "Simulate Mjolnir Spin",
+                            InputActionType.Button,
+                            "Button",
+                            "<Keyboard>/f"),
+                        CreateInputAction(
+                            "Simulate Mjolnir Flight Launch",
+                            InputActionType.Button,
+                            "Button",
+                            "<Keyboard>/g"),
+                        weapon,
+                        aimProvider,
+                        16f,
+                        8f);
+                }
+
+                ThorHammerFlight flight = root.GetComponent<ThorHammerFlight>();
+                if (flight == null)
+                    flight = root.AddComponent<ThorHammerFlight>();
+                flight.Configure(flightSettings, weapon, flightDebug, motor);
+
+                PrefabUtility.SaveAsPrefabAsset(root, ThorDesktopPlayerPrefabPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
         }
 
         private static HeroDefinition LoadOrCreateThorDefinition()
@@ -159,6 +276,42 @@ namespace HeroVR.Editor
             return definition;
         }
 
+        private static ThorHammerFlightSettings LoadOrCreateThorFlightSettings()
+        {
+            ThorHammerFlightSettings settings =
+                AssetDatabase.LoadAssetAtPath<ThorHammerFlightSettings>(
+                    ThorFlightSettingsPath);
+            if (settings == null)
+            {
+                settings = ScriptableObject.CreateInstance<ThorHammerFlightSettings>();
+                settings.name = "Thor Hammer Flight Settings";
+                AssetDatabase.CreateAsset(settings, ThorFlightSettingsPath);
+            }
+
+            settings.Configure(
+                12f,
+                .45f,
+                1.5f,
+                .3f,
+                5.5f,
+                11f,
+                3f,
+                15f,
+                .55f,
+                12f,
+                8f,
+                .2f,
+                4.2f,
+                6f,
+                4f,
+                2.5f,
+                .45f,
+                1.2f,
+                15f);
+            EditorUtility.SetDirty(settings);
+            return settings;
+        }
+
         private static GameObject BuildMjolnirPrefab(
             Material hammerMaterial,
             Material handleMaterial)
@@ -197,6 +350,7 @@ namespace HeroVR.Editor
 
         private static GameObject BuildThorPlayerPrefab(
             HeroDefinition definition,
+            ThorHammerFlightSettings flightSettings,
             GameObject mjolnirPrefab,
             Material lightningMaterial)
         {
@@ -282,6 +436,21 @@ namespace HeroVR.Editor
                 weapon,
                 rightHandVelocity);
 
+            TransformWeaponMotionSource motionSource =
+                root.AddComponent<TransformWeaponMotionSource>();
+            motionSource.Configure(
+                rightController,
+                weapon,
+                weaponInput,
+                .12f);
+            XRCharacterMotor xrMotor = root.GetComponent<XRCharacterMotor>();
+            ThorHammerFlight flight = root.AddComponent<ThorHammerFlight>();
+            flight.Configure(
+                flightSettings,
+                weapon,
+                motionSource,
+                xrMotor);
+
             XRHeroInputAdapter heroInput = root.GetComponent<XRHeroInputAdapter>();
             heroInput.Configure(
                 CreateInputAction(
@@ -328,6 +497,7 @@ namespace HeroVR.Editor
 
         private static GameObject BuildThorDesktopPlayerPrefab(
             HeroDefinition definition,
+            ThorHammerFlightSettings flightSettings,
             GameObject mjolnirPrefab,
             Material lightningMaterial)
         {
@@ -414,6 +584,32 @@ namespace HeroVR.Editor
                 weapon,
                 aimProvider,
                 18f);
+
+            DesktopThorFlightDebugAdapter flightDebug =
+                root.AddComponent<DesktopThorFlightDebugAdapter>();
+            flightDebug.Configure(
+                CreateInputAction(
+                    "Simulate Mjolnir Spin",
+                    InputActionType.Button,
+                    "Button",
+                    "<Keyboard>/f"),
+                CreateInputAction(
+                    "Simulate Mjolnir Flight Launch",
+                    InputActionType.Button,
+                    "Button",
+                    "<Keyboard>/g"),
+                weapon,
+                aimProvider,
+                16f,
+                8f);
+            DesktopCharacterMotor desktopMotor =
+                root.GetComponent<DesktopCharacterMotor>();
+            ThorHammerFlight flight = root.AddComponent<ThorHammerFlight>();
+            flight.Configure(
+                flightSettings,
+                weapon,
+                flightDebug,
+                desktopMotor);
 
             profile.Configure(definition);
             PrefabUtility.SaveAsPrefabAsset(root, ThorDesktopPlayerPrefabPath);

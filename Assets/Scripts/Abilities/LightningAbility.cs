@@ -149,6 +149,12 @@ namespace HeroVR.Abilities
             hideVisualTime = Time.time + visualDuration;
         }
 
+        protected override void CancelActiveState()
+        {
+            if (lineRenderer != null)
+                lineRenderer.enabled = false;
+        }
+
         protected override void OnValidate()
         {
             base.OnValidate();

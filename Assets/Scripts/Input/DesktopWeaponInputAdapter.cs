@@ -6,7 +6,8 @@ using UnityEngine.InputSystem;
 namespace HeroVR.Input
 {
     [DisallowMultipleComponent]
-    public sealed class DesktopWeaponInputAdapter : MonoBehaviour
+    public sealed class DesktopWeaponInputAdapter : MonoBehaviour,
+        IWeaponHoldStateSource
     {
         [SerializeField] private InputActionProperty throwAction;
         [SerializeField] private InputActionProperty recallAction;
@@ -19,6 +20,8 @@ namespace HeroVR.Input
         public RecallableWeapon Weapon => weapon;
         public InputAction ThrowInputAction => throwAction.action;
         public InputAction RecallInputAction => recallAction.action;
+        public bool IsWeaponHeld => weapon != null &&
+            weapon.State == RecallableWeaponState.Held;
 
         private void Awake()
         {

@@ -68,6 +68,30 @@ namespace HeroVR.Tests
         }
 
         [UnityTest]
+        public IEnumerator Damageable_FeedbackReportsAppliedDamageAndImpactStrength()
+        {
+            GameObject targetObject = new GameObject("FeedbackTarget");
+            Damageable target = targetObject.AddComponent<Damageable>();
+            CombatImpact receivedImpact = default;
+            target.ImpactReceived += impact => receivedImpact = impact;
+
+            target.TakeDamage(new DamageInfo(
+                150f,
+                null,
+                target.transform.position,
+                Vector3.back,
+                18f));
+
+            Assert.That(receivedImpact.Target, Is.SameAs(target));
+            Assert.That(receivedImpact.AppliedDamage, Is.EqualTo(100f));
+            Assert.That(receivedImpact.ImpactStrength, Is.EqualTo(37.5f));
+            Assert.That(receivedImpact.DamageInfo.Direction, Is.EqualTo(Vector3.back));
+
+            Object.Destroy(targetObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator AreaDamage_DamagesMultiColliderTargetOnlyOnceAndSkipsInstigator()
         {
             GameObject instigator = new GameObject("Instigator");

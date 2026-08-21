@@ -5,7 +5,7 @@ namespace HeroVR.Movement
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController))]
-    public sealed class DesktopCharacterMotor : MonoBehaviour
+    public sealed class DesktopCharacterMotor : MonoBehaviour, IFlightMovementReceiver
     {
         [SerializeField, Min(0f)] private float moveSpeed = 7f;
         [SerializeField, Min(0f)] private float jumpHeight = 2.6f;
@@ -18,12 +18,25 @@ namespace HeroVR.Movement
         private Vector2 moveInput;
         private Vector2 pendingLookDelta;
         private Vector3 verticalVelocity;
+        private Vector3 flightVelocity;
+        private Vector3 velocity;
+        private float flightGravityScale = 1f;
+        private float flightLiftAcceleration;
+        private float flightDownwardDamping;
+        private float flightMaximumClimbSpeed;
+        private float flightAirSteeringMultiplier = 1f;
+        private float flightDrag;
+        private float flightMaximumHorizontalSpeed;
         private float pitch;
         private bool jumpRequested;
 
         public Transform ViewTransform => viewTransform;
         public float MoveSpeed => moveSpeed;
         public float JumpHeight => jumpHeight;
+        public bool IsGrounded => characterController != null &&
+            characterController.isGrounded;
+        public Vector3 Velocity => velocity;
+        public Vector3 FlightVelocity => flightVelocity;
         public Vector3 DesiredWorldMoveDirection
         {
             get
@@ -71,6 +84,43 @@ namespace HeroVR.Movement
             jumpHeight = Mathf.Max(0f, height);
         }
 
+        public void AddFlightImpulse(Vector3 impulse, float maximumSpeed)
+        {
+            flightVelocity += impulse;
+            if (maximumSpeed > 0f)
+                flightVelocity = Vector3.ClampMagnitude(flightVelocity, maximumSpeed);
+        }
+
+        public void SetFlightModifiers(
+            float gravityScale,
+            float liftAcceleration,
+            float downwardDamping,
+            float maximumClimbSpeed,
+            float airSteeringMultiplier,
+            float drag,
+            float maximumHorizontalSpeed)
+        {
+            flightGravityScale = Mathf.Clamp01(gravityScale);
+            flightLiftAcceleration = Mathf.Max(0f, liftAcceleration);
+            flightDownwardDamping = Mathf.Max(0f, downwardDamping);
+            flightMaximumClimbSpeed = Mathf.Max(0f, maximumClimbSpeed);
+            flightAirSteeringMultiplier = Mathf.Clamp01(airSteeringMultiplier);
+            flightDrag = Mathf.Max(0f, drag);
+            flightMaximumHorizontalSpeed = Mathf.Max(0f, maximumHorizontalSpeed);
+        }
+
+        public void ResetFlightMotion()
+        {
+            flightVelocity = Vector3.zero;
+            flightGravityScale = 1f;
+            flightLiftAcceleration = 0f;
+            flightDownwardDamping = 0f;
+            flightMaximumClimbSpeed = 0f;
+            flightAirSteeringMultiplier = 1f;
+            flightDrag = 0f;
+            flightMaximumHorizontalSpeed = 0f;
+        }
+
         private void Update()
         {
             if (health != null && health.IsDead)
@@ -78,7 +128,9 @@ namespace HeroVR.Movement
                 moveInput = Vector2.zero;
                 pendingLookDelta = Vector2.zero;
                 verticalVelocity = Vector3.zero;
+                velocity = Vector3.zero;
                 jumpRequested = false;
+                ResetFlightMotion();
                 return;
             }
 
@@ -100,18 +152,77 @@ namespace HeroVR.Movement
 
         private void ApplyMovement()
         {
-            if (characterController.isGrounded && verticalVelocity.y < 0f)
+            bool grounded = characterController.isGrounded;
+            if (grounded && verticalVelocity.y < 0f)
                 verticalVelocity.y = -2f;
 
-            if (jumpRequested && characterController.isGrounded)
+            if (jumpRequested && grounded)
                 verticalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
             jumpRequested = false;
-            verticalVelocity.y += gravity * Time.deltaTime;
+            float gravityScale = grounded ? 1f : flightGravityScale;
+            verticalVelocity.y += gravity * gravityScale * Time.deltaTime;
+            if (!grounded && flightLiftAcceleration > 0f)
+            {
+                if (verticalVelocity.y < 0f && flightDownwardDamping > 0f)
+                {
+                    verticalVelocity.y = Mathf.MoveTowards(
+                        verticalVelocity.y,
+                        0f,
+                        flightDownwardDamping * Time.deltaTime);
+                }
+                verticalVelocity.y += flightLiftAcceleration * Time.deltaTime;
+                if (flightMaximumClimbSpeed > 0f)
+                {
+                    verticalVelocity.y = Mathf.Min(
+                        verticalVelocity.y,
+                        flightMaximumClimbSpeed);
+                }
+            }
 
-            Vector3 horizontal = DesiredWorldMoveDirection * moveSpeed;
+            float steeringMultiplier = grounded ? 1f : flightAirSteeringMultiplier;
+            Vector3 horizontal =
+                DesiredWorldMoveDirection * moveSpeed * steeringMultiplier;
+            Vector3 combinedHorizontal = horizontal +
+                Vector3.ProjectOnPlane(flightVelocity, transform.up);
+            if (flightMaximumHorizontalSpeed > 0f)
+            {
+                combinedHorizontal = Vector3.ClampMagnitude(
+                    combinedHorizontal,
+                    flightMaximumHorizontalSpeed);
+            }
 
-            characterController.Move((horizontal + verticalVelocity) * Time.deltaTime);
+            Vector3 intendedVelocity = combinedHorizontal +
+                transform.up * verticalVelocity.y +
+                transform.up * Vector3.Dot(flightVelocity, transform.up);
+            Vector3 previousPosition = transform.position;
+            CollisionFlags collisions = characterController.Move(
+                intendedVelocity * Time.deltaTime);
+            velocity = (transform.position - previousPosition) /
+                Mathf.Max(Time.deltaTime, .0001f);
+            ResolveFlightCollisions(collisions);
+            if (flightDrag > 0f)
+            {
+                flightVelocity = Vector3.MoveTowards(
+                    flightVelocity,
+                    Vector3.zero,
+                    flightDrag * Time.deltaTime);
+            }
+        }
+
+        private void ResolveFlightCollisions(CollisionFlags collisions)
+        {
+            if ((collisions & CollisionFlags.Sides) != 0)
+            {
+                float vertical = Vector3.Dot(flightVelocity, transform.up);
+                flightVelocity = transform.up * vertical;
+            }
+
+            float verticalSpeed = Vector3.Dot(flightVelocity, transform.up);
+            if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
+                flightVelocity -= transform.up * verticalSpeed;
+            else if ((collisions & CollisionFlags.Below) != 0 && verticalSpeed < 0f)
+                flightVelocity -= transform.up * verticalSpeed;
         }
 
         private static float NormalizePitch(float angle)

@@ -9,7 +9,8 @@ namespace HeroVR.Combat
             GameObject instigator = null,
             Vector3 point = default,
             Vector3 direction = default,
-            float knockbackImpulse = 0f)
+            float knockbackImpulse = 0f,
+            float impactStrength = -1f)
         {
             Amount = amount;
             Instigator = instigator;
@@ -18,6 +19,9 @@ namespace HeroVR.Combat
                 ? direction.normalized
                 : Vector3.zero;
             KnockbackImpulse = Mathf.Max(0f, knockbackImpulse);
+            ImpactStrength = impactStrength >= 0f
+                ? impactStrength
+                : Mathf.Max(KnockbackImpulse, Amount * .25f);
         }
 
         public float Amount { get; }
@@ -25,5 +29,6 @@ namespace HeroVR.Combat
         public Vector3 Point { get; }
         public Vector3 Direction { get; }
         public float KnockbackImpulse { get; }
+        public float ImpactStrength { get; }
     }
 }

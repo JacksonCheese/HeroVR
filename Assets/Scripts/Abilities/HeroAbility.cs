@@ -9,6 +9,7 @@ namespace HeroVR.Abilities
         [SerializeField, Min(0f)] private float cooldown = .5f;
 
         private Damageable ownerHealth;
+        private RespawnOnDeath respawn;
         private float nextReadyTime;
 
         public bool IsReady => Time.time >= nextReadyTime;
@@ -27,6 +28,24 @@ namespace HeroVR.Abilities
         protected virtual void Awake()
         {
             ownerHealth = GetComponentInParent<Damageable>();
+            respawn = GetComponentInParent<RespawnOnDeath>();
+        }
+
+        protected virtual void OnEnable()
+        {
+            if (ownerHealth != null)
+                ownerHealth.Died += HandleOwnerDied;
+            if (respawn != null)
+                respawn.Respawned += HandleOwnerRespawned;
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (ownerHealth != null)
+                ownerHealth.Died -= HandleOwnerDied;
+            if (respawn != null)
+                respawn.Respawned -= HandleOwnerRespawned;
+            CancelActiveState();
         }
 
         public bool TryActivate()
@@ -62,6 +81,21 @@ namespace HeroVR.Abilities
         }
 
         protected abstract bool Activate();
+
+        protected virtual void CancelActiveState()
+        {
+        }
+
+        private void HandleOwnerDied()
+        {
+            CancelActiveState();
+        }
+
+        private void HandleOwnerRespawned()
+        {
+            CancelActiveState();
+            ResetCooldown();
+        }
 
         protected virtual void OnValidate()
         {

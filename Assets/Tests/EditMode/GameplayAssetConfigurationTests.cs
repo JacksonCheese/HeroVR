@@ -34,6 +34,8 @@ namespace HeroVR.Tests
             "Assets/Scenes/Arenas/Arena_ThorVRTest.unity";
         private const string ThorDesktopArenaPath =
             "Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity";
+        private const string ThorFlightSettingsPath =
+            "Assets/Heroes/Thor/ThorHammerFlightSettings.asset";
 
         [Test]
         public void XrPlayer_UsesRightPrimaryJumpAndPointerAimPose()
@@ -83,9 +85,16 @@ namespace HeroVR.Tests
                 prefab.GetComponentInChildren<RecallableWeapon>(true);
             XRWeaponInputAdapter weaponInput =
                 prefab.GetComponent<XRWeaponInputAdapter>();
+            TransformWeaponMotionSource motionSource =
+                prefab.GetComponent<TransformWeaponMotionSource>();
+            ThorHammerFlight flight = prefab.GetComponent<ThorHammerFlight>();
             Assert.That(weapon, Is.Not.Null);
             Assert.That(weaponInput, Is.Not.Null);
             Assert.That(weaponInput.Weapon, Is.SameAs(weapon));
+            Assert.That(motionSource, Is.Not.Null);
+            Assert.That(flight, Is.Not.Null);
+            Assert.That(flight.Weapon, Is.SameAs(weapon));
+            Assert.That(flight.Settings, Is.Not.Null);
             Assert.That(
                 BindingPaths(weaponInput.GripInputAction),
                 Does.Contain("<XRController>{RightHand}/{gripButton}"));
@@ -105,6 +114,9 @@ namespace HeroVR.Tests
             HeroAbilityLoadout loadout = prefab.GetComponent<HeroAbilityLoadout>();
             DesktopWeaponInputAdapter weaponInput =
                 prefab.GetComponent<DesktopWeaponInputAdapter>();
+            DesktopThorFlightDebugAdapter flightDebug =
+                prefab.GetComponent<DesktopThorFlightDebugAdapter>();
+            ThorHammerFlight flight = prefab.GetComponent<ThorHammerFlight>();
             RecallableWeapon weapon =
                 prefab.GetComponentInChildren<RecallableWeapon>(true);
 
@@ -115,12 +127,40 @@ namespace HeroVR.Tests
             Assert.That(prefab.GetComponent<ProjectileCaster>(), Is.Null);
             Assert.That(weaponInput, Is.Not.Null);
             Assert.That(weaponInput.Weapon, Is.SameAs(weapon));
+            Assert.That(flightDebug, Is.Not.Null);
+            Assert.That(flight, Is.Not.Null);
+            Assert.That(flight.Weapon, Is.SameAs(weapon));
             Assert.That(
                 BindingPaths(weaponInput.ThrowInputAction),
                 Does.Contain("<Keyboard>/q"));
             Assert.That(
                 BindingPaths(weaponInput.RecallInputAction),
                 Does.Contain("<Keyboard>/r"));
+            Assert.That(
+                BindingPaths(flightDebug.SpinInputAction),
+                Does.Contain("<Keyboard>/f"));
+            Assert.That(
+                BindingPaths(flightDebug.LaunchInputAction),
+                Does.Contain("<Keyboard>/g"));
+        }
+
+        [Test]
+        public void ThorFlightSettings_ExposeStableLaunchAndHoverHysteresis()
+        {
+            ThorHammerFlightSettings settings =
+                AssetDatabase.LoadAssetAtPath<ThorHammerFlightSettings>(
+                    ThorFlightSettingsPath);
+
+            Assert.That(settings, Is.Not.Null);
+            Assert.That(settings.MinimumSpinSpeed, Is.GreaterThan(0f));
+            Assert.That(settings.RequiredSpinDuration, Is.GreaterThan(0f));
+            Assert.That(settings.LaunchMotionThreshold, Is.GreaterThan(0f));
+            Assert.That(settings.LaunchImpulse, Is.GreaterThan(0f));
+            Assert.That(settings.MaximumFlightSpeed, Is.GreaterThan(0f));
+            Assert.That(
+                settings.HoverActivationSpinSpeed,
+                Is.GreaterThan(settings.HoverDeactivationSpinSpeed));
+            Assert.That(settings.HoverGravityMultiplier, Is.InRange(0f, 1f));
         }
 
         [Test]

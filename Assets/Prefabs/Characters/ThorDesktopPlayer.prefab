@@ -149,6 +149,8 @@ GameObject:
   - component: {fileID: 6529080354636230085}
   - component: {fileID: 6823199447746805388}
   - component: {fileID: 4005924624764000458}
+  - component: {fileID: 4384096206747537446}
+  - component: {fileID: 5464262105079129822}
   m_Layer: 0
   m_Name: ThorDesktopPlayer
   m_TagString: Untagged
@@ -453,6 +455,81 @@ MonoBehaviour:
   weapon: {fileID: 6288439324934000549}
   aimProviderSource: {fileID: 4911105505337202674}
   throwInputSpeed: 18
+--- !u!114 &4384096206747537446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4208674904458682527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d38900cb2a154263a98b476cf246c6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Input.DesktopThorFlightDebugAdapter
+  spinAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Simulate Mjolnir Spin
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: 74c8ec87-d655-4664-8433-8ae1ba8aa245
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 9509c2d6-33ed-4233-9880-0a91de7cb0f1
+        m_Path: <Keyboard>/f
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Simulate Mjolnir Spin
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  launchAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Simulate Mjolnir Flight Launch
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: 93260bb9-9f1f-4446-8ac2-3504153416b7
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: b75d569a-6354-416a-ae34-9a164bbfaa24
+        m_Path: <Keyboard>/g
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Simulate Mjolnir Flight Launch
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  weapon: {fileID: 6288439324934000549}
+  aimProviderSource: {fileID: 4911105505337202674}
+  simulatedSpinSpeed: 16
+  simulatedLaunchSpeed: 8
+  launchPulseDuration: 0.08
+--- !u!114 &5464262105079129822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4208674904458682527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d483c2e8a8a88474d8f3c0294678d6c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.ThorHammerFlight
+  settings: {fileID: 11400000, guid: 1d8bd2de1af20498eb48804174c897a9, type: 2}
+  weapon: {fileID: 6288439324934000549}
+  motionSourceComponent: {fileID: 4384096206747537446}
+  movementReceiverComponent: {fileID: 1897032319216352060}
 --- !u!1 &6378688540256816815
 GameObject:
   m_ObjectHideFlags: 0
