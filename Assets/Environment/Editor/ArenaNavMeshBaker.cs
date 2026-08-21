@@ -30,7 +30,9 @@ namespace HeroVR.EnvironmentTools
             "Assets/Scenes/Arenas/Arena_ThorVRTest.unity",
             "Assets/Scenes/Arenas/Arena_ThorDesktopTest.unity",
             "Assets/Scenes/Arenas/Arena_VRTest.unity",
-            "Assets/Scenes/Arenas/Arena_HeroSelect.unity"
+            "Assets/Scenes/Arenas/Arena_HeroSelect.unity",
+            "Assets/Scenes/Arenas/Arena_DestructionTest.unity",
+            "Assets/Scenes/Arenas/BossArena_Graybox_01.unity"
         };
 
         private const string SurfaceName = "NavMeshSurface";
