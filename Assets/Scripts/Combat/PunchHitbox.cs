@@ -49,16 +49,15 @@ namespace HeroVR.Combat
             if (speed < minimumHitSpeed) return;
 
             var target = collision.collider.GetComponentInParent<Damageable>();
-            if (target == null || target == owner || target.IsDead)
+            if (target == owner || target != null && target.IsDead)
                 return;
 
-            if (nextHitTimes.TryGetValue(target, out float nextHitTime) &&
+            if (target != null &&
+                nextHitTimes.TryGetValue(target, out float nextHitTime) &&
                 Time.time < nextHitTime)
             {
                 return;
             }
-
-            nextHitTimes[target] = Time.time + contactCooldown;
 
             float damage = Mathf.Min(speed * damagePerMeterPerSecond, maxDamage);
             Vector3 direction = velocity.normalized;
@@ -67,12 +66,20 @@ namespace HeroVR.Combat
                 ? collision.GetContact(0).point
                 : transform.position;
 
-            target.TakeDamage(new DamageInfo(
+            DamageInfo damageInfo = new DamageInfo(
                 damage,
                 owner != null ? owner.gameObject : gameObject,
                 hitPoint,
                 direction,
-                impulse));
+                impulse,
+                impulse,
+                ImpactSeverityUtility.PhysicalDamageType(impulse));
+
+            if (CombatHitResolver.Apply(collision.collider, damageInfo) <= 0)
+                return;
+
+            if (target != null)
+                nextHitTimes[target] = Time.time + contactCooldown;
 
             if (collision.rigidbody != null && !collision.rigidbody.isKinematic)
             {

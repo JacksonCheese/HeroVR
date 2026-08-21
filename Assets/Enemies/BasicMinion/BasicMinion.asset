@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00ec2396345741c2be18f483c9ab2ed1, type: 3}
+  m_Name: BasicMinion
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Enemies.EnemyDefinition
+  enemyId: basic-physics-minion
+  displayName: Basic Physics Minion
+  attackRole: 0
+  maximumHealth: 110
+  bodyMass: 5
+  moveSpeed: 4.8
+  acceleration: 11
+  attackRange: 1.8
+  attackDamage: 12
+  attackKnockback: 8
+  ragdollImpactThreshold: 18
+  recoversFromRagdoll: 1
+  ragdollRecoveryDelay: 3.5
+  corpseCleanupDelay: 7

@@ -106,16 +106,16 @@ namespace HeroVR.Abilities
             if (closestHit.collider != null)
             {
                 LastEndPoint = closestHit.point;
-                Damageable target = closestHit.collider.GetComponentInParent<Damageable>();
-                if (target != null && target.transform.root != ownerRoot)
-                {
-                    target.TakeDamage(new DamageInfo(
+                CombatHitResolver.Apply(
+                    closestHit.collider,
+                    new DamageInfo(
                         damage,
                         Owner,
                         closestHit.point,
                         direction,
-                        knockbackImpulse));
-                }
+                        knockbackImpulse,
+                        knockbackImpulse,
+                        DamageType.Energy));
 
                 Rigidbody body = closestHit.rigidbody;
                 if (body != null && !body.isKinematic)

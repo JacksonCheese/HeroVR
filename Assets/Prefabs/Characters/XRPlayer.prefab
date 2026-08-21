@@ -84,7 +84,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7fe1a6b115e341c486a53526abfcb45, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.Damageable
   maxHealth: 125
   onHealthChanged:
@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14f0bb00185240aab66cd80c72d2195, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.RespawnOnDeath
   respawnPoint: {fileID: 0}
   respawnDelay: 2
@@ -117,7 +117,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd7169e25f3c2433c95c474039ffd69b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.CharacterKnockbackReceiver
   impulseToSpeed: 1
   deceleration: 14
@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3fdb369afd7804ae38810bd7bacada22, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.MeleePunchAbility
   cooldown: 0.32
   attackOrigin: {fileID: 5991382797860548578}
@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c78e1dbfcf2ba4385bee62044bbfe454, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.ProjectileCaster
   cooldown: 0.45
   projectilePrefab: {fileID: 2319156023187716121, guid: c118c7407c27f463d8005fb9fa962005, type: 3}
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c102438013ed34ff8be573fcc46f5943, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.DashAbility
   cooldown: 1.2
   directionSource: {fileID: 1587423102479437067}
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78698d21edc6347989f6cd1c38111ecd, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.RadialSmashAbility
   cooldown: 1
   centerPoint: {fileID: 3216069940816557541}
@@ -202,7 +202,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e0a9d08052a641ccab7d43ff46888af, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.HeroAbilityLoadout
   primaryAttack: {fileID: 4294697197340635248}
   secondaryAttack: {fileID: 5128979976747395569}
@@ -218,7 +218,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8c703c8a1a0764755b895b3699eee58b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroUltimateCharge
   maximumCharge: 100
   chargePerDamageDealt: 1
@@ -233,7 +233,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b75ce7aed4eb64a669f6f0ea5b162037, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroProfile
   definition: {fileID: 11400000, guid: eeb408d0c9b2f48fd8bdde696cdd38d4, type: 2}
 --- !u!114 &4250567645731771
@@ -246,7 +246,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0cb9aa70a22847b5925ee5f067c10a9, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.XR.CoreUtils::Unity.XR.CoreUtils.XROrigin
   m_Camera: {fileID: 1056063327025587681}
   m_OriginBaseGameObject: {fileID: 410554141780231977}
@@ -263,7 +263,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56c2a2355392c47b1a9249207981ab65, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.XRCharacterMotor
   head: {fileID: 1587423102479437067}
   moveSpeed: 4
@@ -282,7 +282,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 63cf216134b0f4574867d8144e84a7df, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.XRHeroInputAdapter
   moveAction:
     m_UseReference: 0
@@ -291,15 +291,15 @@ MonoBehaviour:
       m_Type: 0
       m_ExpectedControlType: Vector2
       m_Id: 55c6afcc-b0e6-44b5-85b8-1cc51fb8ed6a
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 7bccdff1-22de-4b44-84b5-81e447e18b23
         m_Path: <XRController>{LeftHand}/{primary2DAxis}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Move
         m_Flags: 0
       m_Flags: 0
@@ -312,15 +312,15 @@ MonoBehaviour:
       m_Type: 0
       m_ExpectedControlType: Vector2
       m_Id: cccb4733-a68c-4ac3-992d-90cdf38e370b
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 5838c44b-72bb-4b79-b9db-1b9d1f888c7d
         m_Path: <XRController>{RightHand}/{primary2DAxis}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Turn
         m_Flags: 0
       m_Flags: 0
@@ -333,15 +333,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 7fabdb5c-372e-4eb0-a6b1-c5eb8d7f62ec
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 83ac48d8-9b2c-4319-bacc-01540085ce39
         m_Path: <XRController>{RightHand}/{primaryButton}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Jump
         m_Flags: 0
       m_Flags: 0
@@ -350,12 +350,12 @@ MonoBehaviour:
   primaryAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name:
       m_Type: 0
-      m_ExpectedControlType: 
+      m_ExpectedControlType:
       m_Id: cec47152-8d92-41ff-8e4c-e37c927c163e
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings: []
       m_Flags: 0
       m_Priority: 0
@@ -367,15 +367,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 2527716b-af8c-4665-b28d-8ef1e12d2ce6
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 450ab443-4764-437f-8139-068371ee3ce5
         m_Path: <XRController>{RightHand}/{triggerButton}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Energy Projectile
         m_Flags: 0
       m_Flags: 0
@@ -388,15 +388,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: b2a1ffbd-77e0-452c-94fb-b561ef91ed37
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: c2fa886c-c2c6-4c89-a307-fa9f02fe3ea5
         m_Path: <XRController>{LeftHand}/{primary2DAxisClick}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Dash
         m_Flags: 0
       m_Flags: 0
@@ -409,15 +409,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 8d64f47f-1a62-4e73-aa3b-e8994ab69888
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 91cca95d-82de-4141-9964-09976b8ebdcb
         m_Path: <XRController>{RightHand}/{primary2DAxisClick}
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Super Smash
         m_Flags: 0
       m_Flags: 0
@@ -435,7 +435,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 405fbba1b40f2408ba1301621ae9be26, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroStatusDisplay
   statusText: {fileID: 3019085972669555513}
   viewer: {fileID: 1587423102479437067}
@@ -542,7 +542,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.XR.TrackedPoseDriver
   m_TrackingType: 0
   m_UpdateType: 0
@@ -554,15 +554,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Vector3
       m_Id: 725f9af6-75bd-4ce6-810b-adf6971e2080
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 1fbc4ce7-0430-45c9-a980-0b71115e9b95
         m_Path: <XRHMD>/centerEyePosition
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Head Position
         m_Flags: 0
       m_Flags: 0
@@ -575,15 +575,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Quaternion
       m_Id: 3f3d139f-f204-4db6-9388-c0703b6da892
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 1acb52c2-360c-48b0-bd99-3c5f4d85d63f
         m_Path: <XRHMD>/centerEyeRotation
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Head Rotation
         m_Flags: 0
       m_Flags: 0
@@ -596,37 +596,37 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Integer
       m_Id: 1f0dad5e-ea11-4420-a759-220330f0eece
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: bc2505e2-b12c-46b7-80d9-8f51da86257d
         m_Path: <XRHMD>/trackingState
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Head Tracking State
         m_Flags: 0
       m_Flags: 0
       m_Priority: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: f458c2fd-e60e-401d-8b88-5d1d6b508395
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
   m_RotationAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: eae87fab-e2bd-4758-87f3-0fe780185d40
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
@@ -673,7 +673,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.XR.TrackedPoseDriver
   m_TrackingType: 0
   m_UpdateType: 0
@@ -685,15 +685,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Vector3
       m_Id: 98cd33f7-b02f-4037-89d7-0b0b49733709
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 19b03e5a-caf2-4ab8-8900-d0e5223b9dec
         m_Path: <XRController>{RightHand}/pointerPosition
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightAim Position
         m_Flags: 0
       m_Flags: 0
@@ -706,15 +706,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Quaternion
       m_Id: 20e5953c-aed9-4a88-8023-e79e5aeb1a56
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: d83c4254-9cce-46e5-952d-4caffccf9ba8
         m_Path: <XRController>{RightHand}/pointerRotation
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightAim Rotation
         m_Flags: 0
       m_Flags: 0
@@ -727,37 +727,37 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Integer
       m_Id: abe6c6d8-e9f2-420a-af6f-805d00c1b667
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: be1240ea-1520-4046-86b6-6416ee568578
         m_Path: <XRController>{RightHand}/trackingState
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightAim Tracking State
         m_Flags: 0
       m_Flags: 0
       m_Priority: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: 351550b4-3f7f-41cd-9047-b7e0b76ee369
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
   m_RotationAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: 8c66581d-debd-4079-b64e-e12d24e99fe0
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
@@ -776,6 +776,8 @@ GameObject:
   - component: {fileID: 7518672109395982168}
   - component: {fileID: 7156768241882217878}
   - component: {fileID: 7507023808304591307}
+  - component: {fileID: 2127512832239916128}
+  - component: {fileID: 4032862099748525089}
   m_Layer: 0
   m_Name: LeftPhysicsHand
   m_TagString: Untagged
@@ -913,7 +915,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b189c65c26595487695beae9d0a369b4, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.TrackedHandPhysicsFollower
   trackingTarget: {fileID: 4452982280077260055}
   maximumTrackedSpeed: 20
@@ -927,7 +929,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2328df08ef0b14a0c82bc308c678b401, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.PunchHitbox
   minimumHitSpeed: 1.4
   damagePerMeterPerSecond: 8
@@ -935,6 +937,59 @@ MonoBehaviour:
   knockbackMultiplier: 2
   maxKnockbackImpulse: 14
   contactCooldown: 0.2
+--- !u!114 &2127512832239916128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1042782037139397969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56583372164a4acfb2c0e6971c1761c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Interaction.PhysicsGrabInteractor
+  grabRadius: 0.32
+  grabLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  velocityProviderSource: {fileID: 7156768241882217878}
+  instigator: {fileID: 410554141780231977}
+  throwVelocityMultiplier: 1.15
+  maximumThrowSpeed: 24
+--- !u!114 &4032862099748525089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1042782037139397969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04fa93311f53408fb0bda9f9fcb18ca9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.XRGrabInputAdapter
+  gripAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: LeftHand Grab
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: a1493543-7bcc-4b94-afe0-9ec1567d2474
+      m_Processors:
+      m_Interactions:
+      m_SingletonActionBindings:
+      - m_Name:
+        m_Id: fe817bc3-aa7d-46fa-b638-fda6fd471649
+        m_Path: <XRController>{LeftHand}/{gripButton}
+        m_Interactions:
+        m_Processors:
+        m_Groups:
+        m_Action: LeftHand Grab
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
 --- !u!1 &2516721701774036426
 GameObject:
   m_ObjectHideFlags: 0
@@ -977,7 +1032,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.XR.TrackedPoseDriver
   m_TrackingType: 0
   m_UpdateType: 0
@@ -989,15 +1044,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Vector3
       m_Id: e3d5e0ab-6527-4294-b969-c78c749c8dcc
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: f70c7dc5-3e25-42ac-8403-5544bcc5cc77
         m_Path: <XRController>{RightHand}/devicePosition
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightController Position
         m_Flags: 0
       m_Flags: 0
@@ -1010,15 +1065,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Quaternion
       m_Id: 9eddf523-4267-479b-8619-ad836cc0d942
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 3518fd79-be9c-4013-bd3c-ea996fbb0198
         m_Path: <XRController>{RightHand}/deviceRotation
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightController Rotation
         m_Flags: 0
       m_Flags: 0
@@ -1031,37 +1086,37 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Integer
       m_Id: fbb544e3-105b-43b9-a7a6-bd08719a789b
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: c9cb2959-2993-4260-b8c1-3bd76adc94cf
         m_Path: <XRController>{RightHand}/trackingState
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: RightController Tracking State
         m_Flags: 0
       m_Flags: 0
       m_Priority: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: e8c4a673-58cd-43dc-821f-42039238dd08
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
   m_RotationAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: 596863f9-3c88-444b-a4d0-b4fc81596a9a
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
@@ -1107,7 +1162,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2a0f708f01a86429ea41e0c1432291c3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.TransformAimProvider
   originTransform: {fileID: 1458822630277428091}
   directionTransform: {fileID: 5696283088826145345}
@@ -1154,7 +1209,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.XR.TrackedPoseDriver
   m_TrackingType: 0
   m_UpdateType: 0
@@ -1166,15 +1221,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Vector3
       m_Id: 1604a3cb-fe02-4f7c-9521-c8edf0f4b6b4
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 437c52c5-ca01-43bd-9ffc-4a9ec9e6bb45
         m_Path: <XRController>{LeftHand}/devicePosition
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: LeftController Position
         m_Flags: 0
       m_Flags: 0
@@ -1187,15 +1242,15 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Quaternion
       m_Id: 32838a75-200e-445f-9922-52967a558cd0
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 786c5c6a-4ec7-46ab-82cc-cea17705c2bc
         m_Path: <XRController>{LeftHand}/deviceRotation
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: LeftController Rotation
         m_Flags: 0
       m_Flags: 0
@@ -1208,37 +1263,37 @@ MonoBehaviour:
       m_Type: 2
       m_ExpectedControlType: Integer
       m_Id: 68054ccc-6c46-4f26-b536-5a1b4183a57e
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 18b490b4-ece5-4788-9972-83967229c5b6
         m_Path: <XRController>{LeftHand}/trackingState
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: LeftController Tracking State
         m_Flags: 0
       m_Flags: 0
       m_Priority: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: ac1cb131-d614-45f1-8bec-a35507b94802
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
   m_RotationAction:
-    m_Name: 
+    m_Name:
     m_Type: 0
-    m_ExpectedControlType: 
+    m_ExpectedControlType:
     m_Id: 7296b201-6ca8-400a-bfdf-93b2a4888c62
-    m_Processors: 
-    m_Interactions: 
+    m_Processors:
+    m_Interactions:
     m_SingletonActionBindings: []
     m_Flags: 0
     m_Priority: 0
@@ -1257,6 +1312,8 @@ GameObject:
   - component: {fileID: 4671075793312259046}
   - component: {fileID: 487841532474222242}
   - component: {fileID: 6214483366608331832}
+  - component: {fileID: 6737614508547052214}
+  - component: {fileID: 4349928329848390642}
   m_Layer: 0
   m_Name: RightPhysicsHand
   m_TagString: Untagged
@@ -1394,7 +1451,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b189c65c26595487695beae9d0a369b4, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.TrackedHandPhysicsFollower
   trackingTarget: {fileID: 5991382797860548578}
   maximumTrackedSpeed: 20
@@ -1408,7 +1465,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2328df08ef0b14a0c82bc308c678b401, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.PunchHitbox
   minimumHitSpeed: 1.4
   damagePerMeterPerSecond: 8
@@ -1416,6 +1473,59 @@ MonoBehaviour:
   knockbackMultiplier: 2
   maxKnockbackImpulse: 14
   contactCooldown: 0.2
+--- !u!114 &6737614508547052214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6543275443448817563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56583372164a4acfb2c0e6971c1761c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Interaction.PhysicsGrabInteractor
+  grabRadius: 0.32
+  grabLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  velocityProviderSource: {fileID: 487841532474222242}
+  instigator: {fileID: 410554141780231977}
+  throwVelocityMultiplier: 1.15
+  maximumThrowSpeed: 24
+--- !u!114 &4349928329848390642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6543275443448817563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04fa93311f53408fb0bda9f9fcb18ca9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.XR.XRGrabInputAdapter
+  gripAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: RightHand Grab
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: 7c13fc24-3af1-49a9-97c2-eab9ca99ca1b
+      m_Processors:
+      m_Interactions:
+      m_SingletonActionBindings:
+      - m_Name:
+        m_Id: 8d80f19f-26c9-4f4f-bf72-513ff9248951
+        m_Path: <XRController>{RightHand}/{gripButton}
+        m_Interactions:
+        m_Processors:
+        m_Groups:
+        m_Action: RightHand Grab
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
 --- !u!1 &8287948758104038136
 GameObject:
   m_ObjectHideFlags: 0
@@ -1541,7 +1651,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8336136220343234386}
-  m_Text: 
+  m_Text:
   m_OffsetZ: 0
   m_CharacterSize: 0.012
   m_LineSpacing: 1

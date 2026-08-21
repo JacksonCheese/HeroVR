@@ -163,13 +163,22 @@ The current custom code is organized under `Assets/Scripts`:
 - `Heroes/HeroProfile.cs` applies one definition to the existing reusable ability and combat components.
 - `Heroes/HeroUltimateCharge.cs` implements the optional resource gate used by charged ultimate abilities.
 - `Heroes/HeroStatusDisplay.cs` is the lightweight XR status presenter; it does not own gameplay state.
+- `Combat/RagdollController.cs` reacts to generic impact strength/death and owns bounded ragdoll recovery/settling without owning AI behavior.
+- `Interaction/PhysicsGrabInteractor.cs` is the device-independent one-owner grab joint; `GrabbableCharacter` and `GrabbableObject` own target permission and release behavior.
+- `Combat/ImpactDamageDealer.cs` converts tunable mass/momentum collisions into attributed `DamageInfo` hits.
+- `Destruction/StructuralDamageReceiver.cs` and `DestructibleStructure.cs` own structural health and Intact/Damaged/Broken state transitions.
+- `Enemies/GenericEnemyBrain.cs` applies `EnemyDefinition` data while preserving `TrainingBot` as the current melee/navigation driver.
+- `Enemies/MinionSpawnController.cs` creates bounded groups from generic `MinionSpawnPoint` metadata.
+- `Bosses/BossController.cs`, `BossDefinition.cs`, and `BossHitRegion.cs` provide the placeholder giant-boss phase, region, attack, summon, death, and reset contracts.
 - `Heroes/ThorHammerFlight.cs` interprets held Mjolnir spin and directional motion
   into collision-aware launch, momentum, and hover modifiers.
 - `Heroes/ThorHammerFlightSettings.cs` is Thor's shared desktop/XR flight tuning
   asset contract.
 
 The gameplay-owned validation scenes are `Assets/Scenes/Gameplay/GameplaySandbox.unity`
-and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. They are not production arenas.
+and `Assets/Scenes/Gameplay/XRGameplaySandbox.unity`. The gameplay-owned physics
+and boss validation scene is `Assets/Scenes/Gameplay/PhysicsDestructionSandbox.unity`.
+They are not production arenas.
 
 The first configured hero is **Kinetic Vanguard**, defined by
 `Assets/Heroes/KineticVanguard/KineticVanguard.asset`. Both desktop and XR player

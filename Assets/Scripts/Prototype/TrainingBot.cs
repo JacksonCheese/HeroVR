@@ -1,12 +1,15 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using HeroVR.Combat;
+using HeroVR.Gameplay;
+using HeroVR.Enemies;
 
 namespace HeroVR.Prototype
 {
     [RequireComponent(typeof(Rigidbody), typeof(Damageable), typeof(RespawnOnDeath))]
     [RequireComponent(typeof(NavMeshAgent))]
-    public class TrainingBot : MonoBehaviour, IOpponentReceiver
+    public class TrainingBot : MonoBehaviour, IOpponentReceiver, IControlSuspendable
     {
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
@@ -39,6 +42,8 @@ namespace HeroVR.Prototype
         private float attackHitTime = -1f;
         private float nextRepathTime;
         private Vector3 lastPathTargetPosition = Vector3.positiveInfinity;
+        private readonly HashSet<Object> controlSuspensionSources =
+            new HashSet<Object>();
 
         public Damageable Health => health;
         public Damageable Target => target;
@@ -47,6 +52,7 @@ namespace HeroVR.Prototype
             navMeshAgent != null && navMeshAgent.isOnNavMesh && navMeshAgent.hasPath;
         public Vector3 CurrentSteeringDirection { get; private set; }
         public int PathQueryCount { get; private set; }
+        public bool IsControlSuspended => controlSuspensionSources.Count > 0;
 
         private void Awake()
         {
@@ -80,6 +86,29 @@ namespace HeroVR.Prototype
                 navMeshAgent.enabled = false;
         }
 
+        public void SetControlSuspended(Object source, bool suspended)
+        {
+            if (source == null)
+                return;
+
+            if (suspended)
+                controlSuspensionSources.Add(source);
+            else
+                controlSuspensionSources.Remove(source);
+
+            CancelPendingAttack();
+            if (IsControlSuspended)
+            {
+                if (navMeshAgent != null && navMeshAgent.enabled)
+                    navMeshAgent.enabled = false;
+            }
+            else
+            {
+                TryEnableNavigationAgent();
+                InvalidatePath();
+            }
+        }
+
         public void SetTarget(Damageable combatTarget)
         {
             target = combatTarget;
@@ -91,8 +120,28 @@ namespace HeroVR.Prototype
             SetTarget(opponent);
         }
 
+        public void ConfigureFromDefinition(EnemyDefinition definition)
+        {
+            if (definition == null)
+                return;
+
+            moveSpeed = definition.MoveSpeed;
+            acceleration = definition.Acceleration;
+            attackRange = definition.AttackRange;
+            attackDamage = definition.AttackDamage;
+            attackKnockbackImpulse = definition.AttackKnockback;
+            ConfigureNavigationAgent();
+        }
+
         private void FixedUpdate()
         {
+            if (IsControlSuspended)
+            {
+                CancelPendingAttack();
+                CurrentSteeringDirection = Vector3.zero;
+                return;
+            }
+
             if (health.IsDead)
             {
                 rb.linearVelocity = Vector3.zero;

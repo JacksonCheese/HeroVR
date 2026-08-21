@@ -64,19 +64,22 @@ namespace HeroVR.Abilities
                 ? rb.linearVelocity.normalized
                 : transform.forward;
 
-            var target = collision.collider.GetComponentInParent<Damageable>();
-            if (target != null && target.transform.root != ownerRoot)
+            if (collision.collider.transform.root != ownerRoot)
             {
                 Vector3 hitPoint = collision.contactCount > 0
                     ? collision.GetContact(0).point
                     : transform.position;
 
-                target.TakeDamage(new DamageInfo(
-                    damage,
-                    Owner,
-                    hitPoint,
-                    direction,
-                    knockbackImpulse));
+                CombatHitResolver.Apply(
+                    collision.collider,
+                    new DamageInfo(
+                        damage,
+                        Owner,
+                        hitPoint,
+                        direction,
+                        knockbackImpulse,
+                        knockbackImpulse,
+                        DamageType.Energy));
             }
 
             if (collision.rigidbody != null && !collision.rigidbody.isKinematic)

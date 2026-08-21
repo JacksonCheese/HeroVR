@@ -14,6 +14,7 @@ namespace HeroVR.Abilities
         private readonly Collider[] hitBuffer = new Collider[64];
         private readonly HashSet<Damageable> damageTargets = new HashSet<Damageable>();
         private readonly HashSet<Rigidbody> physicsTargets = new HashSet<Rigidbody>();
+        private readonly HashSet<Transform> receiverTargets = new HashSet<Transform>();
 
         public int LastDamagedTargetCount { get; private set; }
 
@@ -46,7 +47,10 @@ namespace HeroVR.Abilities
                 Owner,
                 hitBuffer,
                 damageTargets,
-                physicsTargets);
+                physicsTargets,
+                Physics.AllLayers,
+                receiverTargets,
+                ImpactSeverityUtility.PhysicalDamageType(knockbackImpulse));
 
             return true;
         }

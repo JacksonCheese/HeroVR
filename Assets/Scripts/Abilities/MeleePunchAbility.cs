@@ -51,15 +51,20 @@ namespace HeroVR.Abilities
                     continue;
 
                 Damageable target = hit.GetComponentInParent<Damageable>();
-                if (target == null || target.IsDead)
+                if (target != null && target.IsDead)
                     continue;
 
-                target.TakeDamage(new DamageInfo(
+                DamageInfo damageInfo = new DamageInfo(
                     damage,
                     Owner,
                     hit.ClosestPoint(center),
                     direction,
-                    knockbackImpulse));
+                    knockbackImpulse,
+                    knockbackImpulse,
+                    ImpactSeverityUtility.PhysicalDamageType(knockbackImpulse));
+
+                if (CombatHitResolver.Apply(hit, damageInfo) <= 0)
+                    continue;
 
                 Rigidbody body = hit.attachedRigidbody;
                 if (body != null && !body.isKinematic)

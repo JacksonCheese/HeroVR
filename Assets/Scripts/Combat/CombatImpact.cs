@@ -16,5 +16,6 @@ namespace HeroVR.Combat
         public DamageInfo DamageInfo { get; }
         public float AppliedDamage { get; }
         public float ImpactStrength => DamageInfo.ImpactStrength;
+        public ImpactSeverity Severity => DamageInfo.Severity;
     }
 }

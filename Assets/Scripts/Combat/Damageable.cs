@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace HeroVR.Combat
 {
-    public class Damageable : MonoBehaviour
+    public class Damageable : MonoBehaviour, ICombatDamageReceiver
     {
         [SerializeField] private float maxHealth = 100f;
         [SerializeField] private UnityEvent<float, float> onHealthChanged;
@@ -47,6 +47,15 @@ namespace HeroVR.Combat
                 Died?.Invoke();
                 onDeath?.Invoke();
             }
+        }
+
+        public bool TryReceiveDamage(DamageInfo damageInfo)
+        {
+            if (IsDead || damageInfo.Amount <= 0f)
+                return false;
+
+            TakeDamage(damageInfo);
+            return true;
         }
 
         public void Heal(float amount)

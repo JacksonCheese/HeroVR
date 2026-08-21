@@ -173,6 +173,7 @@ Transform:
   m_Children:
   - {fileID: 385143404270489483}
   - {fileID: 522671230616060934}
+  - {fileID: 2535998196010026862}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &6606532693481739529
@@ -210,7 +211,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7fe1a6b115e341c486a53526abfcb45, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.Damageable
   maxHealth: 190
   onHealthChanged:
@@ -229,7 +230,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14f0bb00185240aab66cd80c72d2195, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.RespawnOnDeath
   respawnPoint: {fileID: 0}
   respawnDelay: 2
@@ -243,7 +244,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd7169e25f3c2433c95c474039ffd69b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Combat.CharacterKnockbackReceiver
   impulseToSpeed: 1
   deceleration: 14
@@ -257,7 +258,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db1623b5a82bf4eb99546c037285423a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Movement.DesktopCharacterMotor
   moveSpeed: 5.4
   jumpHeight: 3.2
@@ -274,7 +275,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3fdb369afd7804ae38810bd7bacada22, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.MeleePunchAbility
   cooldown: 0.38
   attackOrigin: {fileID: 385143404270489483}
@@ -292,7 +293,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c102438013ed34ff8be573fcc46f5943, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.DashAbility
   cooldown: 1.4
   directionSource: {fileID: 7060776798224701930}
@@ -308,7 +309,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78698d21edc6347989f6cd1c38111ecd, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.RadialSmashAbility
   cooldown: 1
   centerPoint: {fileID: 7060776798224701930}
@@ -325,7 +326,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e0a9d08052a641ccab7d43ff46888af, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.HeroAbilityLoadout
   primaryAttack: {fileID: 2834345888915152882}
   secondaryAttack: {fileID: 6823199447746805388}
@@ -341,7 +342,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8c703c8a1a0764755b895b3699eee58b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroUltimateCharge
   maximumCharge: 100
   chargePerDamageDealt: 1
@@ -356,7 +357,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b75ce7aed4eb64a669f6f0ea5b162037, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.HeroProfile
   definition: {fileID: 11400000, guid: f7ea772df40a247e697c22f90a66464b, type: 2}
 --- !u!114 &6529080354636230085
@@ -369,7 +370,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c917e61591f1c41b48c6ba835c63dcce, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Prototype.DesktopHeroController
   viewCamera: {fileID: 8519388328461954396}
   projectileSpawnPoint: {fileID: 2047194631311769595}
@@ -385,7 +386,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03b63956e9b1341718b63caf5955c974, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.LightningAbility
   cooldown: 0.7
   aimProviderSource: {fileID: 4911105505337202674}
@@ -408,7 +409,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d989241bf077940868c4377b52c920df, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Input.DesktopWeaponInputAdapter
   throwAction:
     m_UseReference: 0
@@ -417,15 +418,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 143682cb-996b-4477-a98b-62c6b21cf2b9
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: be58c4f5-091d-42fd-acbe-88c3b9eb9e89
         m_Path: <Keyboard>/q
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Throw Mjolnir
         m_Flags: 0
       m_Flags: 0
@@ -438,15 +439,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: f3c7edeb-1628-4f79-8c6a-e08dd5151e77
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 8d7a690a-5817-4d78-9e2c-a969e581561f
         m_Path: <Keyboard>/r
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Recall Mjolnir
         m_Flags: 0
       m_Flags: 0
@@ -465,7 +466,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d38900cb2a154263a98b476cf246c6a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Input.DesktopThorFlightDebugAdapter
   spinAction:
     m_UseReference: 0
@@ -474,15 +475,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 74c8ec87-d655-4664-8433-8ae1ba8aa245
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: 9509c2d6-33ed-4233-9880-0a91de7cb0f1
         m_Path: <Keyboard>/f
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Simulate Mjolnir Spin
         m_Flags: 0
       m_Flags: 0
@@ -495,15 +496,15 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: 93260bb9-9f1f-4446-8ac2-3504153416b7
-      m_Processors: 
-      m_Interactions: 
+      m_Processors:
+      m_Interactions:
       m_SingletonActionBindings:
-      - m_Name: 
+      - m_Name:
         m_Id: b75d569a-6354-416a-ae34-9a164bbfaa24
         m_Path: <Keyboard>/g
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
+        m_Interactions:
+        m_Processors:
+        m_Groups:
         m_Action: Simulate Mjolnir Flight Launch
         m_Flags: 0
       m_Flags: 0
@@ -524,12 +525,151 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d483c2e8a8a88474d8f3c0294678d6c2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Heroes.ThorHammerFlight
   settings: {fileID: 11400000, guid: 1d8bd2de1af20498eb48804174c897a9, type: 2}
   weapon: {fileID: 6288439324934000549}
   motionSourceComponent: {fileID: 4384096206747537446}
   movementReceiverComponent: {fileID: 1897032319216352060}
+--- !u!1 &5314562033875499291
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2535998196010026862}
+  - component: {fileID: 668143999501761727}
+  - component: {fileID: 6585643902731950793}
+  - component: {fileID: 1955778865297833179}
+  - component: {fileID: 8147592571896796415}
+  m_Layer: 0
+  m_Name: DesktopGrabHand
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2535998196010026862
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314562033875499291}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7060776798224701930}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &668143999501761727
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314562033875499291}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &6585643902731950793
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314562033875499291}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1955778865297833179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314562033875499291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56583372164a4acfb2c0e6971c1761c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Interaction.PhysicsGrabInteractor
+  grabRadius: 0.75
+  grabLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  velocityProviderSource: {fileID: 0}
+  instigator: {fileID: 4208674904458682527}
+  throwVelocityMultiplier: 1
+  maximumThrowSpeed: 24
+--- !u!114 &8147592571896796415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314562033875499291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ef39fdd39be4d0a9ce04a35ad94010a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Input.DesktopGrabInputAdapter
+  grabAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Desktop Physics Grab
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: 61504147-28f2-4228-b49b-856852733832
+      m_Processors:
+      m_Interactions:
+      m_SingletonActionBindings:
+      - m_Name:
+        m_Id: d5e406f1-6a30-4c5f-9fff-07ecab171538
+        m_Path: <Keyboard>/e
+        m_Interactions:
+        m_Processors:
+        m_Groups:
+        m_Action: Desktop Physics Grab
+        m_Flags: 0
+      m_Flags: 0
+      m_Priority: 0
+    m_Reference: {fileID: 0}
+  aimProviderSource: {fileID: 4911105505337202674}
+  grabReach: 2.25
+  debugThrowSpeed: 16
 --- !u!1 &6378688540256816815
 GameObject:
   m_ObjectHideFlags: 0
@@ -572,7 +712,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2a0f708f01a86429ea41e0c1432291c3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Abilities.TransformAimProvider
   originTransform: {fileID: 2047194631311769595}
   directionTransform: {fileID: 385143404270489483}
@@ -801,11 +941,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6109969160844663437, guid: 8e46c418d7f8e443f96d267d30c32e09, type: 3}
       propertyPath: owner
-      value: 
+      value:
       objectReference: {fileID: 5861752381685951731}
     - target: {fileID: 6109969160844663437, guid: 8e46c418d7f8e443f96d267d30c32e09, type: 3}
       propertyPath: holdAnchor
-      value: 
+      value:
       objectReference: {fileID: 2771774637014820899}
     - target: {fileID: 6109969160844663437, guid: 8e46c418d7f8e443f96d267d30c32e09, type: 3}
       propertyPath: recallSpeed
@@ -846,5 +986,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9608ec4f20c44a0cbe8c5cdc0206e61, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HeroVR.Runtime::HeroVR.Weapons.RecallableWeapon
