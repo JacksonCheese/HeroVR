@@ -536,6 +536,9 @@ namespace HeroVR.EnvironmentTools
 
         private static void MarkStaticRecursive(GameObject root)
         {
+            // Deliberately no NavigationStatic: it is deprecated in the AI Navigation package,
+            // which selects bake geometry through NavMeshSurface collection instead. See
+            // ArenaNavMeshBaker, which scopes the bake to this Environment hierarchy.
             const StaticEditorFlags flags = StaticEditorFlags.BatchingStatic
                                             | StaticEditorFlags.OccluderStatic
                                             | StaticEditorFlags.OccludeeStatic
